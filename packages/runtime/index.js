@@ -432,6 +432,11 @@ export const MotionScope = ({tokens, root = true, children}) => {
  * `opacity` fades it; it stays a function of what you pass. With `line`, the id of one of its <Film>'s lines, it draws that line's words while
  * it is said, fading in and out, and nothing at other times.
  */
+// Scripts written without blanks between words: an engine gives their words one character (or syllable) each, and they
+// are shown together again, with a blank only where neither side is one of them, as HyperFrames joins its words.
+const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
+const blankBetween = (left, right) => (UNSPACED.test(left.at(-1) ?? '') || UNSPACED.test(right[0] ?? '') ? '' : ' ');
+
 export const Caption = ({line, words = false, children, opacity = 1, style}) => {
   // Both read before anything branches, so a caption calls the same hooks with a line or without.
   const said = useContext(Said);
@@ -443,7 +448,7 @@ export const Caption = ({line, words = false, children, opacity = 1, style}) => 
     if (fade <= 0) return null;
     // Word by word, where the line is voiced: each word full once it is said, the rest waiting faint.
     const shown = words && spoken.words?.length
-      ? spoken.words.map((w, i) => createElement('span', {key: i, style: {opacity: said.now >= w.start ? 1 : 0.35}}, `${i ? ' ' : ''}${w.text}`))
+      ? spoken.words.map((w, i) => createElement('span', {key: i, style: {opacity: said.now >= w.start ? 1 : 0.35}}, `${i ? blankBetween(spoken.words[i - 1].text, w.text) : ''}${w.text}`))
       : spoken.text;
     return createElement(Caption, {opacity: opacity * fade, style}, children ?? shown);
   }

@@ -207,6 +207,11 @@ test('useLine says when a line is said in its scene\'s time, and word captions l
   assert.match(lit, /<span style="opacity:1">Heat<\/span><span style="opacity:0.35"> moves<\/span>/);
   assert.match(at(3.0, 'words'), /<span style="opacity:1"> moves<\/span>/);
   assert.match(at(2.7, true), />Heat moves</, 'whole, without words');
+  // Chinese, as an engine gives its words one character each: no blank inside it, one beside a spaced word.
+  const zh = {l1: {seconds: 1, words: ['热', '向', 'up', '走', '。'].map((text, i) => ({text, start: i * 0.2, end: i * 0.2 + 0.1}))}};
+  const said = renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 2.9, useCompositionTime: () => 2.9, fps: 30, width: 1920, height: 1080, voice: zh}},
+    h(Film, {captions: 'words'}, h(Scene, {id: 'a', duration: 2}), h(Scene, {id: 'b', duration: 3}, h(Line, {id: 'l1'}, '热向 up 走。')))));
+  assert.equal(said.replace(/<[^>]+>/g, '').match(/热.*。/)?.[0], '热向up走。');
   assert.throws(() => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1, height: 1}}, h(When))), /a line is read inside a <Film>/);
 });
 

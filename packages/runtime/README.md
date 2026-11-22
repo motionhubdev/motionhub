@@ -58,7 +58,8 @@ check it scene by scene without running it:
   is cut there, and the line says by how much (`over`), for the engine to tell; lines it leaves no time are said where it ends, in none.
   Speech never makes the outline fail, since its length is the engine's; times the author wrote that cannot all hold still do. A voiced line in the outline has `voiced` and its `words`, in the film's seconds. `useLine(id)` gives a
   line's `{start, end, words}` in its scene's time, so a picture can move with what is said; `<Film captions="words">` draws a voiced line
-  word by word, each full once it is said.
+  word by word, each full once it is said. Its words are set apart by a blank, but where either side is Chinese, Japanese, Korean or Thai,
+  which an engine gives one character (or syllable) a word: `热向前走` stays together.
 - **`<Sound src at dur trim loop volume fadeIn fadeOut duck>`**: a sound the film plays, the file `src` (a path the engine serves), from
   `at` seconds of its scene, or of the film when it is one of `<Film>`'s own; `dur` seconds of it, from `trim` seconds into the file (the
   whole file when left out); with `loop`, again and again to the end of its scene or of the film; at `volume` dB (0 is the file as it is),
