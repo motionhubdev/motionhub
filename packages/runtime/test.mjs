@@ -197,6 +197,8 @@ test('a voiced line lasts as long as its speech, after a lead or a hold, and say
   assert.deepEqual(l4.words, [{text: 'Late', start: 7.4, end: 9}]);
   assert.equal(outline.voice, 'edge:en-US-AriaNeural');
   assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'Aria'}), /a voice is its provider and its name/);
+  assert.equal(filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'minimax:Chinese (Mandarin)_News_Anchor'}).voice, 'minimax:Chinese (Mandarin)_News_Anchor', "a provider's name with blanks and brackets");
+  assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'minimax: Anchor'}), /a voice is its provider and its name/);
   assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1}, h(Line, {id: 'x'}, 'X'))], {voice: {x: {seconds: 0}}}), /no length of speech/);
   // Speech is never the author's to fix: it is cut where the next line begins, and the lines it leaves no time are said in none.
   const scene = (voice, ...lines) => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 6}, ...lines.map(([id, props]) => h(Line, {key: id, id, ...props}, id)))], {voice})

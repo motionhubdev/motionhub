@@ -255,8 +255,9 @@ const timeLines = (lines, start, duration, voice = {}) => {
  * twice where it must be unique, and a sound with no file or a time that is no number of seconds, are errors.
  */
 export function filmOutline(children, {width = 1920, height = 1080, captions = false, voice = {}, speaker} = {}) {
-  if (speaker !== undefined && !(typeof speaker === 'string' && /^[\w.-]+:\S+$/.test(speaker))) {
-    throw new Error(`<Film voice="${speaker}">: a voice is its provider and its name, as voice="edge:en-US-AriaNeural"`);
+  // A provider's own name for a voice may hold blanks and brackets, as MiniMax's "Chinese (Mandarin)_News_Anchor" does.
+  if (speaker !== undefined && !(typeof speaker === 'string' && /^[\w.-]+:\S(?:.*\S)?$/.test(speaker))) {
+    throw new Error(`<Film voice="${speaker}">: a voice is its provider and its name, as voice="minimax:Chinese (Mandarin)_News_Anchor"`);
   }
   const box = (e) => ({id: named('Layer', e.props.id), x: e.props.x ?? 0, y: e.props.y ?? 0, w: e.props.w ?? width, h: e.props.h ?? height, z: e.props.z ?? 0});
   const unique = (what, items) => {
