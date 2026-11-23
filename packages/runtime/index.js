@@ -429,6 +429,7 @@ export const MotionScope = ({tokens, root = true, children}) => {
 /**
  * The motion's caption: one spoken line on the frame, drawn from the caption group of its tokens: font, size, weight, color, background, radius,
  * padding-y, padding-x, bottom, max-width, shadow (a text shadow), and a rule: rule-left (a bar down its left side) or rule-top (a short bar above it).
+ * Lengths are pixels, as numbers (36) or as '36px'. With neither a color nor a background it is drawn white on a dark ground.
  * `opacity` fades it; it stays a function of what you pass. With `line`, the id of one of its <Film>'s lines, it draws that line's words while
  * it is said, fading in and out, and nothing at other times.
  */
@@ -452,13 +453,18 @@ export const Caption = ({line, words = false, children, opacity = 1, style}) => 
       : spoken.text;
     return createElement(Caption, {opacity: opacity * fade, style}, children ?? shown);
   }
-  const py = c['padding-y'] ?? 10, pad = `${py}px ${c['padding-x'] ?? 26}px`;
+  // A length in pixels as resolved tokens give it (36), or as a film's own tokens may write it ('36px'); anything else is not one.
+  const px = (v, fallback) => (typeof v === 'number' ? v : typeof v === 'string' && /^\s*-?[\d.]+(px)?\s*$/.test(v) ? parseFloat(v) : fallback);
+  const py = px(c['padding-y'], 10), pad = `${py}px ${px(c['padding-x'], 26)}px`;
+  // A caption given neither a colour nor a ground is drawn light on a dark ground, legible over any picture.
+  const plain = c.color === undefined && c.background === undefined;
   const rule = c['rule-left']
     ? createElement('div', {style: {position: 'absolute', left: 0, top: py * 0.6, bottom: py * 0.6, width: 4, borderRadius: 2, background: c['rule-left']}})
     : c['rule-top'] ? createElement('div', {style: {width: 56, height: 3, background: c['rule-top'], margin: '0 auto 8px'}}) : null;
-  return createElement('div', {style: {position: 'absolute', left: 0, right: 0, bottom: c.bottom ?? 54, display: 'flex', justifyContent: 'center', opacity, pointerEvents: 'none'}},
+  return createElement('div', {style: {position: 'absolute', left: 0, right: 0, bottom: px(c.bottom, 54), display: 'flex', justifyContent: 'center', opacity, pointerEvents: 'none'}},
     createElement('div', {style: {
-      position: 'relative', maxWidth: c['max-width'] ?? 1500, textAlign: 'center', fontFamily: c.font, fontSize: c.size ?? 34, fontWeight: c.weight ?? 400, lineHeight: 1.35,
-      color: c.color, background: c.background ?? 'transparent', padding: pad, borderRadius: c.radius ?? 10, textShadow: c.shadow, ...style,
+      position: 'relative', maxWidth: px(c['max-width'], 1500), textAlign: 'center', fontFamily: c.font, fontSize: px(c.size, 34), fontWeight: c.weight ?? 400, lineHeight: 1.35,
+      color: c.color ?? (plain ? '#ffffff' : undefined), background: c.background ?? (plain ? 'rgba(12, 14, 18, 0.72)' : 'transparent'), padding: pad,
+      borderRadius: px(c.radius, 10), textShadow: c.shadow, ...style,
     }}, rule, children));
 };

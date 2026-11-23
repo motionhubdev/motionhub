@@ -143,6 +143,19 @@ test('a scene\'s lines are said when they say, sharing what they leave out evenl
   assert.throws(() => times([{dur: 6}, {}]), /<Line id="l1">: no time is left for it before the end of its scene \(6 s\)/);
 });
 
+test("a Caption's lengths are pixels as numbers or as '36px', and one given no colours is drawn light on a dark ground", () => {
+  const draw = (caption) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1920, height: 1080, tokens: {caption}}}, h(Caption, null, 'Said')));
+  const given = draw({size: '46px', 'padding-y': '14px', 'padding-x': 32, radius: '14px', bottom: '60px', color: '#f2ebdd', background: '#1d2b3e'});
+  assert.match(given, /bottom:60px/);
+  assert.match(given, /font-size:46px/);
+  assert.match(given, /padding:14px 32px/);
+  assert.match(given, /border-radius:14px/);
+  assert.match(given, /color:#f2ebdd;background:#1d2b3e/);
+  assert.match(draw({size: 'large'}), /font-size:34px/, 'a length that is not one falls back');
+  assert.match(draw({}), /color:#ffffff;background:rgba\(12, 14, 18, 0.72\)/);
+  assert.match(draw({color: '#111418'}), /color:#111418;background:transparent/, "a motion's own colour keeps its ground");
+});
+
 test('a Film with captions draws the line being said over everything, and a Caption draws one line while it is said', () => {
   const at = (t, film) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => t, useCompositionTime: () => t, fps: 30, width: 1920, height: 1080}}, film));
   const film = (props, ...extra) => h(Film, props,
