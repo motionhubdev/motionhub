@@ -154,6 +154,10 @@ test("a Caption's lengths are pixels as numbers or as '36px', and one given no c
   assert.match(draw({size: 'large'}), /font-size:34px/, 'a length that is not one falls back');
   assert.match(draw({}), /color:#ffffff;background:rgba\(12, 14, 18, 0.72\)/);
   assert.match(draw({color: '#111418'}), /color:#111418;background:transparent/, "a motion's own colour keeps its ground");
+  const portrait = (caption) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1080, height: 1920, tokens: {caption}}}, h(Caption, null, 'Said')));
+  assert.match(draw({}), /max-width:1500px/, 'a landscape frame keeps 1500 px');
+  assert.match(portrait({'padding-x': 32}), /max-width:888px/, "a portrait frame's caption keeps 64 px from its sides, padding included");
+  assert.match(portrait({'max-width': 700}), /max-width:700px/, 'a max-width given is kept');
 });
 
 test('a Film with captions draws the line being said over everything, and a Caption draws one line while it is said', () => {
