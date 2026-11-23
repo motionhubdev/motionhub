@@ -255,8 +255,9 @@ const timeLines = (lines, start, duration, voice = {}) => {
  * twice where it must be unique, and a sound with no file or a time that is no number of seconds, are errors.
  */
 export function filmOutline(children, {width = 1920, height = 1080, captions = false, voice = {}, speaker} = {}) {
-  if (speaker !== undefined && !(typeof speaker === 'string' && /^[\w.-]+:\S+$/.test(speaker))) {
-    throw new Error(`<Film voice="${speaker}">: a voice is its provider and its name, as voice="edge:en-US-AriaNeural"`);
+  // A provider's own name for a voice may hold blanks and brackets, as MiniMax's "Chinese (Mandarin)_News_Anchor" does.
+  if (speaker !== undefined && !(typeof speaker === 'string' && /^[\w.-]+:\S(?:.*\S)?$/.test(speaker))) {
+    throw new Error(`<Film voice="${speaker}">: a voice is its provider and its name, as voice="minimax:Chinese (Mandarin)_News_Anchor"`);
   }
   const box = (e) => ({id: named('Layer', e.props.id), x: e.props.x ?? 0, y: e.props.y ?? 0, w: e.props.w ?? width, h: e.props.h ?? height, z: e.props.z ?? 0});
   const unique = (what, items) => {
@@ -429,13 +430,21 @@ export const MotionScope = ({tokens, root = true, children}) => {
 /**
  * The motion's caption: one spoken line on the frame, drawn from the caption group of its tokens: font, size, weight, color, background, radius,
  * padding-y, padding-x, bottom, max-width, shadow (a text shadow), and a rule: rule-left (a bar down its left side) or rule-top (a short bar above it).
+ * Lengths are pixels, as numbers (36) or as '36px'. With neither a color nor a background it is drawn white on a dark ground.
+ * Without a max-width, its text is at most 1500 px wide and keeps 64 px from the frame's sides.
  * `opacity` fades it; it stays a function of what you pass. With `line`, the id of one of its <Film>'s lines, it draws that line's words while
  * it is said, fading in and out, and nothing at other times.
  */
+// Scripts written without blanks between words: an engine gives their words one character (or syllable) each, and they
+// are shown together again, with a blank only where neither side is one of them, as HyperFrames joins its words.
+const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
+const blankBetween = (left, right) => (UNSPACED.test(left.at(-1) ?? '') || UNSPACED.test(right[0] ?? '') ? '' : ' ');
+
 export const Caption = ({line, words = false, children, opacity = 1, style}) => {
   // Both read before anything branches, so a caption calls the same hooks with a line or without.
   const said = useContext(Said);
   const c = useTokens().caption ?? {};
+  const frame = useVideoConfig().width;
   if (line !== undefined) {
     const spoken = said?.lines.find((l) => l.id === line);
     if (!spoken) throw new Error(`<Caption line="${line}">: ${said ? 'the film has no line by that id' : 'a caption of a line is drawn inside a <Film>'}`);
@@ -443,17 +452,24 @@ export const Caption = ({line, words = false, children, opacity = 1, style}) => 
     if (fade <= 0) return null;
     // Word by word, where the line is voiced: each word full once it is said, the rest waiting faint.
     const shown = words && spoken.words?.length
-      ? spoken.words.map((w, i) => createElement('span', {key: i, style: {opacity: said.now >= w.start ? 1 : 0.35}}, `${i ? ' ' : ''}${w.text}`))
+      ? spoken.words.map((w, i) => createElement('span', {key: i, style: {opacity: said.now >= w.start ? 1 : 0.35}}, `${i ? blankBetween(spoken.words[i - 1].text, w.text) : ''}${w.text}`))
       : spoken.text;
     return createElement(Caption, {opacity: opacity * fade, style}, children ?? shown);
   }
-  const py = c['padding-y'] ?? 10, pad = `${py}px ${c['padding-x'] ?? 26}px`;
+  // A length in pixels as resolved tokens give it (36), or as a film's own tokens may write it ('36px'); anything else is not one.
+  const px = (v, fallback) => (typeof v === 'number' ? v : typeof v === 'string' && /^\s*-?[\d.]+(px)?\s*$/.test(v) ? parseFloat(v) : fallback);
+  const py = px(c['padding-y'], 10), padX = px(c['padding-x'], 26), pad = `${py}px ${padX}px`;
+  // At most 1500 px of text, and never closer than 64 px to the frame's sides: a portrait frame is narrower than that.
+  const widest = Number.isFinite(frame) && frame > 0 ? Math.min(1500, frame - 128 - 2 * padX) : 1500;
+  // A caption given neither a colour nor a ground is drawn light on a dark ground, legible over any picture.
+  const plain = c.color === undefined && c.background === undefined;
   const rule = c['rule-left']
     ? createElement('div', {style: {position: 'absolute', left: 0, top: py * 0.6, bottom: py * 0.6, width: 4, borderRadius: 2, background: c['rule-left']}})
     : c['rule-top'] ? createElement('div', {style: {width: 56, height: 3, background: c['rule-top'], margin: '0 auto 8px'}}) : null;
-  return createElement('div', {style: {position: 'absolute', left: 0, right: 0, bottom: c.bottom ?? 54, display: 'flex', justifyContent: 'center', opacity, pointerEvents: 'none'}},
+  return createElement('div', {style: {position: 'absolute', left: 0, right: 0, bottom: px(c.bottom, 54), display: 'flex', justifyContent: 'center', opacity, pointerEvents: 'none'}},
     createElement('div', {style: {
-      position: 'relative', maxWidth: c['max-width'] ?? 1500, textAlign: 'center', fontFamily: c.font, fontSize: c.size ?? 34, fontWeight: c.weight ?? 400, lineHeight: 1.35,
-      color: c.color, background: c.background ?? 'transparent', padding: pad, borderRadius: c.radius ?? 10, textShadow: c.shadow, ...style,
+      position: 'relative', maxWidth: px(c['max-width'], widest), textAlign: 'center', fontFamily: c.font, fontSize: px(c.size, 34), fontWeight: c.weight ?? 400, lineHeight: 1.35,
+      color: c.color ?? (plain ? '#ffffff' : undefined), background: c.background ?? (plain ? 'rgba(12, 14, 18, 0.72)' : 'transparent'), padding: pad,
+      borderRadius: px(c.radius, 10), textShadow: c.shadow, ...style,
     }}, rule, children));
 };

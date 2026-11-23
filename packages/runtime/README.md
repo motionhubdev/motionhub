@@ -15,7 +15,7 @@ You do not use this package on its own: an engine binding provides it.
 | `useTokens()` | The motion's `tokens.json` resolved: `color.ink` (a CSS colour), `font.display` (a CSS stack), `duration.light` (seconds), `easing.light` (`[x1, y1, x2, y2]`), `caption.*` |
 | `seededRandom(seed)` | A stream of numbers in [0, 1) for a string or number seed: the same seed draws the same picture in every engine |
 | `<Video src startAt trimBefore playbackRate objectFit>` | The engine's video: shown from `startAt` s of the sequence, its source from `trimBefore` s |
-| `<Caption line opacity>` | One spoken line, drawn from the `caption` tokens (font, size, weight, color, background, radius, padding-y, padding-x, bottom, max-width, shadow, rule-left or rule-top); with `line`, that line of the film's while it is said |
+| `<Caption line opacity>` | One spoken line, drawn from the `caption` tokens (font, size, weight, color, background, radius, padding-y, padding-x, bottom, max-width, shadow, rule-left or rule-top; lengths in pixels, as `36` or `'36px'`; with neither color nor background, white on a dark ground; without max-width, at most 1500 px and 64 px from the frame's sides); with `line`, that line of the film's while it is said |
 | `<Sequence from duration>`, `interpolate(t, input, output, {easing})`, `Easing` | As Remotion's, in seconds: a span whose children count time from its start, a value mapped through a curve, and the curves (`Easing.bezier` takes a cubicBezier token). For composing components, as a reel does |
 | `<MotionRoot tokens>` | A full-frame box carrying the tokens as CSS custom properties |
 | `<MotionScope tokens root>` | Its children drawn in another motion, on the engine's clock: `useTokens()` under it gives that motion's tokens (a `tokens.json`, or tokens already resolved), set as custom properties on a full-frame root (`root={false}` leaves it out). A film in several motions wraps each scene, or each part of a frame, in one |
@@ -58,7 +58,8 @@ check it scene by scene without running it:
   is cut there, and the line says by how much (`over`), for the engine to tell; lines it leaves no time are said where it ends, in none.
   Speech never makes the outline fail, since its length is the engine's; times the author wrote that cannot all hold still do. A voiced line in the outline has `voiced` and its `words`, in the film's seconds. `useLine(id)` gives a
   line's `{start, end, words}` in its scene's time, so a picture can move with what is said; `<Film captions="words">` draws a voiced line
-  word by word, each full once it is said.
+  word by word, each full once it is said. Its words are set apart by a blank, but where either side is Chinese, Japanese, Korean or Thai,
+  which an engine gives one character (or syllable) a word: `热向前走` stays together.
 - **`<Sound src at dur trim loop volume fadeIn fadeOut duck>`**: a sound the film plays, the file `src` (a path the engine serves), from
   `at` seconds of its scene, or of the film when it is one of `<Film>`'s own; `dur` seconds of it, from `trim` seconds into the file (the
   whole file when left out); with `loop`, again and again to the end of its scene or of the film; at `volume` dB (0 is the file as it is),

@@ -143,6 +143,23 @@ test('a scene\'s lines are said when they say, sharing what they leave out evenl
   assert.throws(() => times([{dur: 6}, {}]), /<Line id="l1">: no time is left for it before the end of its scene \(6 s\)/);
 });
 
+test("a Caption's lengths are pixels as numbers or as '36px', and one given no colours is drawn light on a dark ground", () => {
+  const draw = (caption) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1920, height: 1080, tokens: {caption}}}, h(Caption, null, 'Said')));
+  const given = draw({size: '46px', 'padding-y': '14px', 'padding-x': 32, radius: '14px', bottom: '60px', color: '#f2ebdd', background: '#1d2b3e'});
+  assert.match(given, /bottom:60px/);
+  assert.match(given, /font-size:46px/);
+  assert.match(given, /padding:14px 32px/);
+  assert.match(given, /border-radius:14px/);
+  assert.match(given, /color:#f2ebdd;background:#1d2b3e/);
+  assert.match(draw({size: 'large'}), /font-size:34px/, 'a length that is not one falls back');
+  assert.match(draw({}), /color:#ffffff;background:rgba\(12, 14, 18, 0.72\)/);
+  assert.match(draw({color: '#111418'}), /color:#111418;background:transparent/, "a motion's own colour keeps its ground");
+  const portrait = (caption) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1080, height: 1920, tokens: {caption}}}, h(Caption, null, 'Said')));
+  assert.match(draw({}), /max-width:1500px/, 'a landscape frame keeps 1500 px');
+  assert.match(portrait({'padding-x': 32}), /max-width:888px/, "a portrait frame's caption keeps 64 px from its sides, padding included");
+  assert.match(portrait({'max-width': 700}), /max-width:700px/, 'a max-width given is kept');
+});
+
 test('a Film with captions draws the line being said over everything, and a Caption draws one line while it is said', () => {
   const at = (t, film) => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => t, useCompositionTime: () => t, fps: 30, width: 1920, height: 1080}}, film));
   const film = (props, ...extra) => h(Film, props,
@@ -180,6 +197,8 @@ test('a voiced line lasts as long as its speech, after a lead or a hold, and say
   assert.deepEqual(l4.words, [{text: 'Late', start: 7.4, end: 9}]);
   assert.equal(outline.voice, 'edge:en-US-AriaNeural');
   assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'Aria'}), /a voice is its provider and its name/);
+  assert.equal(filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'minimax:Chinese (Mandarin)_News_Anchor'}).voice, 'minimax:Chinese (Mandarin)_News_Anchor', "a provider's name with blanks and brackets");
+  assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1})], {speaker: 'minimax: Anchor'}), /a voice is its provider and its name/);
   assert.throws(() => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 1}, h(Line, {id: 'x'}, 'X'))], {voice: {x: {seconds: 0}}}), /no length of speech/);
   // Speech is never the author's to fix: it is cut where the next line begins, and the lines it leaves no time are said in none.
   const scene = (voice, ...lines) => filmOutline([h(Scene, {key: 'a', id: 'a', duration: 6}, ...lines.map(([id, props]) => h(Line, {key: id, id, ...props}, id)))], {voice})
@@ -207,6 +226,11 @@ test('useLine says when a line is said in its scene\'s time, and word captions l
   assert.match(lit, /<span style="opacity:1">Heat<\/span><span style="opacity:0.35"> moves<\/span>/);
   assert.match(at(3.0, 'words'), /<span style="opacity:1"> moves<\/span>/);
   assert.match(at(2.7, true), />Heat moves</, 'whole, without words');
+  // Chinese, as an engine gives its words one character each: no blank inside it, one beside a spaced word.
+  const zh = {l1: {seconds: 1, words: ['热', '向', 'up', '走', '。'].map((text, i) => ({text, start: i * 0.2, end: i * 0.2 + 0.1}))}};
+  const said = renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 2.9, useCompositionTime: () => 2.9, fps: 30, width: 1920, height: 1080, voice: zh}},
+    h(Film, {captions: 'words'}, h(Scene, {id: 'a', duration: 2}), h(Scene, {id: 'b', duration: 3}, h(Line, {id: 'l1'}, '热向 up 走。')))));
+  assert.equal(said.replace(/<[^>]+>/g, '').match(/热.*。/)?.[0], '热向up走。');
   assert.throws(() => renderToStaticMarkup(h(MotionRuntimeProvider, {value: {useTime: () => 0, useCompositionTime: () => 0, fps: 30, width: 1, height: 1}}, h(When))), /a line is read inside a <Film>/);
 });
 
