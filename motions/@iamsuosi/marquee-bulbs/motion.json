@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "marquee-bulbs",
+  "version": "1.0.0",
+  "name": {"en": "Marquee Bulbs", "zh-CN": "灯泡招牌"},
+  "line": {"en": "A theatre sign on a street at night: words and figures spelled in warm round bulbs that switch on in sweeps, inside a frame of chasing lights.", "zh-CN": "夜晚街头的剧院招牌：字和数字由暖色圆灯泡拼成，一扫而亮，四周是追逐闪动的灯框。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["bulbs", "signage", "night", "dot-matrix", "kinetic-type", "warm", "dark"],
+  "fit": {
+    "for": {"en": "Openings, programmes and announcements: what is on, a short list told item by item, one big figure, a then-and-now; films about shows, cinema, events and nights out.", "zh-CN": "片头、节目单和公告：今天上演什么、逐项揭示的短清单、一个大数字、今昔对比；关于演出、电影、活动和夜生活的片子。"},
+    "not": {"en": "Long sentences, diagrams and anything that needs a picture: a bulb word holds about twelve letters. Calm or sombre subjects.", "zh-CN": "长句、示意图和任何需要画面的内容：一行灯泡字最多约十二个字母。安静或沉重的题材。"}
+  }
+}

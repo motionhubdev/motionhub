@@ -1,0 +1,61 @@
+{
+ "bpm": 84,
+ "root": 98,
+ "kit": [
+  "pad",
+  "room",
+  "hat"
+ ],
+ "roles": {
+  "land": [
+   {
+    "voice": "click",
+    "lo": 2500,
+    "hi": 7000,
+    "len": 0.02,
+    "gain": 0.6
+   },
+   {
+    "voice": "noise",
+    "lo": 3000,
+    "hi": 7000,
+    "len": 0.08,
+    "fade": "hit",
+    "gain": 0.25
+   }
+  ],
+  "draw": {
+   "voice": "swell",
+   "freq": 120,
+   "gain": 0.5
+  },
+  "count": {
+   "voice": "tone",
+   "freq": 240,
+   "len": 0.3,
+   "decay": 0.15,
+   "gain": 0.5
+  },
+  "cut": [
+   {
+    "voice": "thump",
+    "freq": 60,
+    "len": 0.2,
+    "drop": 0.3,
+    "gain": 1
+   },
+   {
+    "voice": "click",
+    "lo": 800,
+    "hi": 3000,
+    "len": 0.03,
+    "gain": 0.8
+   }
+  ],
+  "out": {
+   "voice": "swell",
+   "freq": 98,
+   "gain": 0.6
+  }
+ }
+}
