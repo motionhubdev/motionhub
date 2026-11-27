@@ -2,11 +2,11 @@
 // The motionhub command, published as @motionhub/cli: check motions against the format and the hub's rules
 // (tools/check.mjs, the same checks a pull request runs); search, get, start and share them (tools/hub.mjs).
 //
-//   motionhub check [dir or MOTION.md ...] [--format-only] [--author <github-login>] [--author-id <github-id>] [--was <motion.json>]
+//   motionhub check [dir or MOTION.md ...] [--format-only] [--author <handle>] [--author-id <account-id>] [--was <motion.json>]
 //   motionhub search [words ...]
 //   motionhub get [<id>] [--out <dir>] [--private]
 //   motionhub private push <dir> | list | delete <id>[@<version>]
-//   motionhub init <slug> [--github <login>]
+//   motionhub init <slug> [--handle <handle>]
 //   motionhub tokens [MOTION.md] [--out <file>]
 //   motionhub share <dir> [--wait]
 
@@ -16,13 +16,13 @@ import {main as check} from '../tools/check.mjs';
 import {main as hub} from '../tools/hub.mjs';
 import {privateCli} from '../tools/private-cli.mjs';
 
-const USAGE = `usage: motionhub check [dir or MOTION.md ...] [--format-only] [--author <github-login>] [--author-id <github-id>] [--was <motion.json>]
+const USAGE = `usage: motionhub check [dir or MOTION.md ...] [--format-only] [--author <handle>] [--author-id <account-id>] [--was <motion.json>]
        motionhub search [words ...]
        motionhub login | whoami | logout
        motionhub artifact upload <index.html|site.zip|directory> [--id <artifact-id>] [--title <name>]
        motionhub get [<id>] [--out <dir>] [--private]
        motionhub private push <dir> | motionhub private list | motionhub private delete <id>[@<version>]
-       motionhub init <slug> [--github <login>]
+       motionhub init <slug> [--handle <handle>]
        motionhub tokens [MOTION.md] [--out <file>]
        motionhub share <dir> [--wait]
 
@@ -35,13 +35,15 @@ get     the newest version of a motion (@iamsuosi/lab-notebook) into ./motions/<
         --private, one of your own private motions, signed in
 private a motion of your own kept on motionhub.dev for you alone, signed in with motionhub login: push checks it
         against the format and keeps a version (which never changes once kept), list and delete manage them
-init    a new motion @<you>/<slug> in ./motions/<slug>/, every required file but the poster, to fill in
+init    a new motion @<you>/<slug> in ./motions/<slug>/, every required file but the poster, to fill in, under the
+        handle motionhub login signed in (or --handle)
 tokens  a motion in one file's tokens as tokens.json, to standard output or --out; with no file, the project's
         (./MOTION.md, else ./motion/MOTION.md)
 share   a motion through the checks its pull request will run, against what is published, then uploaded to
-        motionhub.dev: open the link it prints, sign in with GitHub and type its code. motionhub's GitHub App opens
-        the pull request from a share/ branch (no git, gh or token needed; --wait waits for it). This is the only way
-        to submit; --pr and a fork are refused`;
+        motionhub.dev. Signed in with motionhub login, at a terminal, it lists the files and asks you to certify the
+        DCO, then opens the pull request at once; otherwise open the link it prints, sign in and type its code.
+        motionhub's GitHub App opens the pull request from a share/ branch (no git, gh or token needed; --wait waits
+        for it). This is the only way to submit; --pr and a fork are refused`;
 
 const [command, ...args] = process.argv.slice(2);
 try {
