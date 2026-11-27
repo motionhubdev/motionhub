@@ -168,7 +168,7 @@ test('init starts a motion of the project\'s own in motions/<slug>/', async () =
   const r = await inDir(project, 'init', ['my-look', '--handle', 'ana']);
   assert.equal(r.status, 0);
   assert.ok(existsSync(join(project, 'motions/my-look/motion.json')));
-  assert.match(r.out, /motionhub share motions\/my-look/);
+  assert.match(r.out, /motionhub upload motions\/my-look to keep it for yourself, or motionhub publish motions\/my-look/);
 });
 
 test('init needs no network: signed in but with motionhub.dev out of reach, it starts the motion and says to pass --handle', () => {
@@ -293,14 +293,14 @@ test('the skill names the format\'s version, and looks for a project\'s motion w
   assert.ok(skill.includes('Never invent a number'));
 });
 
-test('share refuses --pr and --github, and the help no longer offers a fork', async () => {
+test('publish refuses --pr and --github, and the help no longer offers a fork', async () => {
   const help = execFileSync(process.execPath, [BIN, '--help'], {encoding: 'utf8'});
   assert.doesNotMatch(help, /share <dir> --pr/);
   assert.match(help, /--pr and a fork are refused/);
   assert.match(help, /share\/ branch/);
   const project = mkdtempSync(join(tmpdir(), 'share-'));
   for (const args of [['motions/plain-ink', '--pr'], ['--pr'], ['motions/plain-ink', '--github', 'ana'], ['--github', 'ana']]) {
-    const r = await inDir(project, 'share', args);
+    const r = await inDir(project, 'publish', args);
     assert.equal(r.status, 2, args.join(' '));
     assert.match(r.out, /motionhub\.dev/, args.join(' '));
     assert.match(r.out, /share\/ branch/, args.join(' '));

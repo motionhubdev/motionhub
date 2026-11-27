@@ -66,7 +66,7 @@ npx skills add motionhubdev/motionhub -g
 |---|---|
 | `/motionhub make a film about <你的主题> in @iamsuosi/lab-notebook` | agent 取回这个 motion，核对 SHA-256，完整读完 `MOTION.md` 和 `tokens.json`，再用它手头的引擎照着这个外观做片 |
 | `/motionhub make a Remotion film about <你的主题> in @iamsuosi/lab-notebook` | 同上，但用 Remotion，并用这个 motion 的组件和 token 来搭建 |
-| `/motionhub share this project's look as a motion` | agent 从项目里提取外观写成 motion（不带片子的故事），跑完检查后给你看结果，你同意后才开 pull request |
+| `/motionhub turn this project's look into a motion` | agent 按[提炼指南](docs/extract.md)从项目里提取外观写成 motion（不带片子的故事），跑完检查后给你看结果，你同意后才上传给自己用，或开 pull request 公开发布 |
 
 也可以用命令行，需要 Node.js 20 或更高版本：
 
@@ -126,14 +126,15 @@ motions/@<scope>/<slug>/   一个 motion，id 为 @<scope>/<slug>：创作者的
 做了一部片子，觉得它的外观值得给别人用？装好 skill 后，在那个项目里对 agent 说：
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 也可以手动操作：
 
 ```sh
 npx @motionhub/cli init <slug> --handle <你>   # 生成 ./motions/<slug>/，含所有待填写的必需文件，scope 为你
-npx @motionhub/cli share motions/<slug>        # 跑一遍 pull request 会跑的检查，然后给出链接：登录即可开 pull request
+npx @motionhub/cli upload motions/<slug>       # 只给自己用：立即保存，无需审核
+npx @motionhub/cli publish motions/<slug>      # 公开发布：跑一遍 pull request 会跑的检查，然后在终端认证 DCO（或打开链接）即可开 pull request
 ```
 
 不需要 git、gh 或 GitHub token：打开链接、登录 motionhub.dev、输入终端显示的验证码。motionhub 的 GitHub App 会以你的名义打开 pull request。

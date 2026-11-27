@@ -58,12 +58,12 @@ test('push checks the motion against the format, packs it under its id and keeps
     const {bytes, id, version} = packPrivate(t.dir);
     assert.deepEqual([id, version], ['@ana/ledger', '1.0.0']);
     t.state({'POST /api/private/motions': {status: 201, json: {id, version, sha256: sha(bytes), bytes: bytes.length, kept: false}}});
-    const r = await t.run(['private', 'push', t.dir]);
+    const r = await t.run(['upload', t.dir]);
     assert.equal(r.code, 0, r.stderr);
-    assert.match(r.stdout, /@ana\/ledger 1\.0\.0 kept privately on https:\/\/motionhub\.dev, for you alone/);
+    assert.match(r.stdout, /@ana\/ledger 1\.0\.0 uploaded to https:\/\/motionhub\.dev, for you alone/);
     assert.deepEqual(t.log(), [{method: 'POST', path: '/api/private/motions', auth: 'Bearer test-credential', type: 'application/gzip', sha256: sha(bytes)}]);
     t.state({'POST /api/private/motions': {json: {id, version, kept: true}}});
-    assert.match((await t.run(['private', 'push', t.dir])).stdout, /kept privately already, these same files/);
+    assert.match((await t.run(['upload', t.dir])).stdout, /is uploaded already, these same files/);
   } finally { t.done(); }
 });
 
@@ -71,10 +71,10 @@ test('push refuses a directory that is not a motion in the format, and asks noth
   const t = setup();
   try {
     rmSync(join(t.dir, 'tokens.json'));
-    let r = await t.run(['private', 'push', t.dir]);
+    let r = await t.run(['upload', t.dir]);
     assert.equal(r.code, 1);
     assert.match(r.stderr, /is not a motion in the format yet/);
-    r = await t.run(['private', 'push', join(t.root, 'project')]);
+    r = await t.run(['upload', join(t.root, 'project')]);
     assert.equal(r.code, 1);
     assert.match(r.stderr, /has no motion\.json/);
     assert.deepEqual(t.log(), []);
@@ -85,7 +85,7 @@ test('the server\'s refusal is shown as it is', async () => {
   const t = setup();
   try {
     t.state({'POST /api/private/motions': {status: 409, json: {error: '@ana/ledger 1.0.0 is kept already, with other files: raise version in motion.json to keep this one'}}});
-    const r = await t.run(['private', 'push', t.dir]);
+    const r = await t.run(['upload', t.dir]);
     assert.equal(r.code, 1);
     assert.match(r.stderr, /raise version in motion\.json/);
   } finally { t.done(); }
@@ -98,14 +98,14 @@ test('list prints each private motion, newest version first; delete removes a ve
       'GET /api/private/motions.json': {json: {motions: [{slug: '@ana/ledger', version: '1.1.0', versions: [{version: '1.1.0'}, {version: '1.0.0'}]}]}},
       'DELETE /api/private/motions/@ana/ledger/1.0.0': {json: {deleted: 1}},
     });
-    assert.equal((await t.run(['private', 'list'])).stdout, '@ana/ledger  1.1.0  (also 1.0.0)\n1 private motion(s); take one with: motionhub get <id> --private\n');
-    let r = await t.run(['private', 'delete', '@ana/ledger@1.0.0']);
+    assert.equal((await t.run(['list'])).stdout, '@ana/ledger  1.1.0  (also 1.0.0)\n1 uploaded motion(s), yours alone; take one with: motionhub get <id> --private\n');
+    let r = await t.run(['delete', '@ana/ledger@1.0.0']);
     assert.match(r.stdout, /@ana\/ledger 1\.0\.0: 1 version\(s\) deleted/);
-    r = await t.run(['private', 'delete', '@ana/board']);
+    r = await t.run(['delete', '@ana/board']);
     assert.equal(r.code, 1);
-    assert.match(r.stderr, /you keep no @ana\/board privately/);
+    assert.match(r.stderr, /you have no @ana\/board uploaded/);
     assert.deepEqual(t.log().map((l) => `${l.method} ${l.path}`), ['GET /api/private/motions.json', 'DELETE /api/private/motions/@ana/ledger/1.0.0', 'DELETE /api/private/motions/@ana/board']);
-    for (const args of [['private'], ['private', 'push'], ['private', 'list', 'x'], ['private', 'delete', 'ledger']]) assert.notEqual((await t.run(args)).code, 0, args.join(' '));
+    for (const args of [['private', 'push', 'x'], ['share', 'x'], ['upload'], ['list', 'x'], ['delete', 'ledger']]) assert.notEqual((await t.run(args)).code, 0, args.join(' '));
   } finally { t.done(); }
 });
 
@@ -141,7 +141,7 @@ test('get --private takes a private motion into the project, recorded as private
     assert.match(r.stderr, /does not match the index's SHA-256/);
     assert.ok(!existsSync(join(project, 'motions/@ana/ledger')));
     r = await t.run(['get', '@ana/other', '--private'], project);
-    assert.match(r.stderr, /you keep no @ana\/other privately/);
+    assert.match(r.stderr, /you have no @ana\/other uploaded/);
   } finally { t.done(); }
 });
 

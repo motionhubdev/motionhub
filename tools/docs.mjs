@@ -18,6 +18,7 @@ export const DOCS = [
     {slug: 'hyperframes', file: 'docs/hyperframes.md', label: 'HyperFrames', engine: 'HyperFrames'},
   ]},
   {group: 'Share', pages: [
+    {slug: 'extract', file: 'docs/extract.md', label: 'Turn your look into a motion'},
     {slug: 'contribute', file: 'CONTRIBUTING.md', label: 'Share a motion', title: 'Share a motion'},
   ]},
   {group: 'Reference', pages: [

@@ -37,10 +37,16 @@ A look you only need in your own project can be [one `MOTION.md`](motion-md.md#s
 Made a film whose look others should have? With the skill installed, ask your agent from that project:
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
-It writes the motion as `@<your handle>/<slug>`, takes the look from the project and never the film's story, runs the checks the pull request will run and shows you the result. With your yes, it gives you a link and a code: open the link, sign in to motionhub.dev, type the code, and the pull request opens under your name. No git, GitHub CLI or token is needed, so a cloud agent can do it too. [Share a motion](../CONTRIBUTING.md) has the rules it follows and the commands it runs.
+With no skill installed, any agent that can open a URL does the same:
+
+```text
+Read https://motionhub.dev/llms.txt, then turn this project's look into a motion and upload it for me
+```
+
+It writes the motion as `@<your handle>/<slug>`, takes the look from the project and never the film's story ([Turn your look into a motion](extract.md) is what it follows), runs the checks and shows you the result. With your yes, `upload` keeps it for you alone, at once; `publish` makes it public: it gives you a link and a code, you open the link, sign in to motionhub.dev, type the code, and the pull request opens under your name. No git, GitHub CLI or token is needed, so a cloud agent can do it too. [Share a motion](../CONTRIBUTING.md) has the rules a published motion meets.
 
 ## From the command line
 

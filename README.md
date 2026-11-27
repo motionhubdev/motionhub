@@ -64,7 +64,7 @@ Then say what you want:
 |---|---|
 | `/motionhub make a film about <your topic> in @iamsuosi/lab-notebook` | The agent fetches the motion, checks it against its SHA-256, reads `MOTION.md` and `tokens.json` whole, and makes your film in its look with whatever engine it uses |
 | `/motionhub make a Remotion film about <your topic> in @iamsuosi/lab-notebook` | The same, in Remotion, built from the motion's components and tokens |
-| `/motionhub share this project's look as a motion` | The agent writes the motion from the project's look and never its story, runs the checks, shows you the result and opens the pull request only when you say yes |
+| `/motionhub turn this project's look into a motion` | The agent writes the motion from the project's look and never its story ([the guide it follows](docs/extract.md)), runs the checks, shows you the result, and uploads it for you or opens the pull request only when you say yes |
 
 Or from the command line, with Node.js 20 or later:
 
@@ -124,17 +124,18 @@ Both bindings provide [`@motionhub/runtime`](packages/runtime/README.md), which 
 Made a film whose look others should have? With the skill installed, ask your agent from that project:
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 By hand:
 
 ```sh
 npx @motionhub/cli init <slug> --handle <you>   # ./motions/<slug>/ with every required file to fill in, scoped to you
-npx @motionhub/cli share motions/<slug>         # the checks, then a link: sign in to open the pull request
+npx @motionhub/cli upload motions/<slug>        # keep it for yourself alone, at once, with no review
+npx @motionhub/cli publish motions/<slug>       # for everyone: the checks, then you certify the DCO (or open the link) to open the pull request
 ```
 
-No git, gh or GitHub token is needed: open the link and sign in to motionhub.dev. motionhub's GitHub App opens the pull request under your name.
+No git, gh or GitHub token is needed: sign in to motionhub.dev with `npx @motionhub/cli login`, or open the link `publish` prints. motionhub's GitHub App opens the pull request under your name.
 
 Your motion is published as `@<your handle>/<slug>`, and building on someone else's motion is welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has what is accepted and how it is reviewed.
 

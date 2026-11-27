@@ -15,21 +15,22 @@ npx skills add motionhubdev/motionhub -g
 ask your agent from the project whose look you want to share:
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 It runs the steps below for you and asks before it opens the pull request. By hand:
 
 ```sh
 npx @motionhub/cli init <slug> --handle <you>   # ./motions/<slug>/ with every required file to fill in, scoped to you
-npx @motionhub/cli share motions/<slug>         # the checks below, then a link: sign in there to open the pull request
+npx @motionhub/cli upload motions/<slug>        # optional: keep it for yourself first, with no review
+npx @motionhub/cli publish motions/<slug>       # the checks below, then you certify the DCO (or open the link) to open the pull request
 ```
 
-`share` needs no git, `gh` or GitHub token, so it works from any machine an agent runs on, a cloud one included. It checks the motion and uploads it to motionhub.dev, then prints a link and a code. Open the link and sign in to motionhub.dev; before your first share, sign in there once, so your handle is yours. Check the motion, type the code your terminal shows, and certify the DCO. motionhub's GitHub App then opens the pull request on your behalf. The App signs the commit, which records your account and DCO sign-off; the app shows as the pull request's author, and the pull request names you. Signed in with `npx @motionhub/cli login`, at your own terminal, `share` asks you instead to check the file list and certify the DCO there, and opens the pull request at once. Add `--wait` to have the command wait (up to 30 minutes) and print the pull request. To change it, share it again: while your pull request for it is open, the new version is added to it. Your page on motionhub.dev (`/you/`, In review) lists it, and Withdraw there closes it. A link works for a day. A new motion under your scope can be submitted only by your account; a published one only by its sole author account. Only that account may read the private draft; knowing the link is not enough. Shared this way, a motion holds at most 40 files that are not text (pictures, fonts, sounds).
+`publish` needs no git, `gh` or GitHub token, so it works from any machine an agent runs on, a cloud one included. It checks the motion and uploads it to motionhub.dev, then prints a link and a code. Open the link and sign in to motionhub.dev; before your first share, sign in there once, so your handle is yours. Check the motion, type the code your terminal shows, and certify the DCO. motionhub's GitHub App then opens the pull request on your behalf. The App signs the commit, which records your account and DCO sign-off; the app shows as the pull request's author, and the pull request names you. Signed in with `npx @motionhub/cli login`, at your own terminal, `share` asks you instead to check the file list and certify the DCO there, and opens the pull request at once. Add `--wait` to have the command wait (up to 30 minutes) and print the pull request. To change it, share it again: while your pull request for it is open, the new version is added to it. Your page on motionhub.dev (`/you/`, In review) lists it, and Withdraw there closes it. A link works for a day. A new motion under your scope can be submitted only by your account; a published one only by its sole author account. Only that account may read the private draft; knowing the link is not enough. Shared this way, a motion holds at most 40 files that are not text (pictures, fonts, sounds).
 
 Never type a share's code on a page you did not open from your own terminal.
 
-Submitting means this command and the page it opens. A fork of this repository, and `share --pr`, are not a way to open the pull request: the ownership check does not check out fork code, so such a pull request cannot pass.
+Submitting means this command and the page it opens. A fork of this repository, and `publish --pr`, are not a way to open the pull request: the ownership check does not check out fork code, so such a pull request cannot pass.
 
 Never include credential files, private keys or secrets, even inside a tool directory. The CLI and server refuse recognized credential paths and values. Before confirming, inspect the complete file list: opening the PR makes every submitted file public, even if CI later fails or the PR is closed.
 

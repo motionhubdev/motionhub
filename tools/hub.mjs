@@ -14,7 +14,7 @@
 //                                               id is @<handle>/<slug>
 //   motionhub tokens [MOTION.md] [--out <file>] a motion in one file's tokens, as tokens.json; by default the project's
 //                                               (./MOTION.md, else ./motion/MOTION.md), to standard output
-//   motionhub share <dir> [--wait]              the pull request's checks, then the motion uploaded to motionhub.dev and a
+//   motionhub publish <dir> [--wait]            the pull request's checks, then the motion uploaded to motionhub.dev and a
 //                                               link (and a code) where the person signs in to motionhub.dev and opens the
 //                                               pull request; nothing of git, gh or a GitHub token is needed here. Signed
 //                                               in with `motionhub login`, in a terminal, the person certifies the DCO
@@ -198,13 +198,13 @@ export async function main(command, args, base = HUB) {
     if (value('--out')) { writeFileSync(value('--out'), json); console.log(`${value('--out')}, the tokens of ${file}`); } else process.stdout.write(json);
     return 0;
   }
-  if (command === 'share') {
+  if (command === 'publish') {
     // a fork pull request fails ownership (it will not check out fork code). The only submission is the site intake
     if (args.includes('--pr') || args.includes('--github')) {
-      console.error('share submits only through motionhub.dev. Run `motionhub share <dir>` (add --wait to wait for the pull request), open the link it prints and sign in to motionhub.dev: motionhub\'s GitHub App opens the pull request from a share/ branch. --pr forked this repository with your own GitHub token and is removed, because those pull requests fail the ownership check. --github on share is removed; `motionhub check <dir> --author <handle>` runs the checks as that account.');
+      console.error('publish submits only through motionhub.dev. Run `motionhub publish <dir>` (add --wait to wait for the pull request): motionhub\'s GitHub App opens the pull request from a share/ branch. A fork, with your own GitHub token, is not a way to submit: those pull requests fail the ownership check. `motionhub check <dir> --author <handle>` runs the checks as that account.');
       return 2;
     }
-    if (!slug) { console.error('usage: motionhub share <dir> [--wait]'); return 2; }
+    if (!slug) { console.error('usage: motionhub publish <dir> [--wait]'); return 2; }
     // signed in for this hub, a person at a terminal may submit from here; an agent, with no terminal, gives the link
     const token = base === origin ? await keptToken().catch(() => '') : '';
     console.log(await shareLink(resolve(slug), {wait: args.includes('--wait'), log: (l) => console.log(l), token, certify: certifyHere}, base));
@@ -218,7 +218,7 @@ export async function main(command, args, base = HUB) {
     // the signed-in account's handle when motionhub.dev can say it; init itself needs no network
     const account = value('--handle') ? {login: value('--handle')} : await signedIn().catch((e) => { console.error(`motionhub.dev could not say who is signed in (${e.message}): pass --handle <handle>, or fill in scope and authors in motion.json`); return undefined; });
     for (const [path, data] of scaffold(slug, account)) { mkdirSync(dirname(join(out, path)), {recursive: true}); writeFileSync(join(out, path), data); }
-    console.log(`${out}, the motion @${account?.login ? account.login.toLowerCase() : 'your-handle'}/${slug}, authored by ${account?.login ? `${account.login}${value('--handle') ? '' : ' (the account motionhub login signed in)'}` : 'nobody yet: run motionhub login, or set scope and authors in motion.json'}: fill in motion.json, MOTION.md, tokens.json and CREDITS.md, add poster.jpg (a frame of a film made in it, 960 to 3840 pixels wide, at most 500 KB) and any tool directory, then: motionhub share ${relative(process.cwd(), out)}`);
+    console.log(`${out}, the motion @${account?.login ? account.login.toLowerCase() : 'your-handle'}/${slug}, authored by ${account?.login ? `${account.login}${value('--handle') ? '' : ' (the account motionhub login signed in)'}` : 'nobody yet: run motionhub login, or set scope and authors in motion.json'}: fill in motion.json, MOTION.md, tokens.json and CREDITS.md, add poster.jpg (a frame of a film made in it, 960 to 3840 pixels wide, at most 500 KB) and any tool directory, then: motionhub upload ${relative(process.cwd(), out)} to keep it for yourself, or motionhub publish ${relative(process.cwd(), out)} to make it public`);
     return 0;
   }
   if (!slug) {
@@ -232,7 +232,7 @@ export async function main(command, args, base = HUB) {
   const out = resolve(custom ?? motionPath(slug)), at = relative(process.cwd(), out);
   // --private: one of your own motions, kept on motionhub.dev for you alone (tools/private-cli.mjs), signed in
   const rows = own ? await privateIndex() : await index(base);
-  if (own && !rows.some((m) => m.slug === slug)) throw new Error(`you keep no ${slug} privately: motionhub private list`);
+  if (own && !rows.some((m) => m.slug === slug)) throw new Error(`you have no ${slug} uploaded: motionhub list`);
   const lock = readLock();
   // a copy already in the project stays: it is the version the film was made in
   if (!custom && existsSync(out)) {
