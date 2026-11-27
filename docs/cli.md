@@ -46,10 +46,10 @@ What a project took from motionhub, so the same film is made in the same motions
 ## init
 
 ```sh
-npx @motionhub/cli init <slug> [--github <login>]
+npx @motionhub/cli init <slug> [--handle <handle>]
 ```
 
-A new motion `@<you>/<slug>` in `./motions/<slug>/`, a motion of the project's own, with every required file but the poster, to fill in. Your GitHub login comes from `--github`, or from `gh` when it is signed in.
+A new motion `@<you>/<slug>` in `./motions/<slug>/`, a motion of the project's own, with every required file but the poster, to fill in. Your handle comes from `--handle`, or from the account `login` signed the command line in to.
 
 ## tokens
 
@@ -62,7 +62,7 @@ The tokens of a [motion in one file](../SPEC.md#11-a-motion-in-one-file) as `tok
 ## check
 
 ```sh
-npx @motionhub/cli check [dir or MOTION.md ...] [--format-only] [--author <github-login>] [--was <motion.json>]
+npx @motionhub/cli check [dir or MOTION.md ...] [--format-only] [--author <handle>] [--was <motion.json>]
 ```
 
 A motion against the [specification](../SPEC.md) and motionhub's rules. With no directory it checks the current directory when it is a motion, and otherwise every motion under `./motions/`, in a project as [the specification](../SPEC.md#13-a-projects-motions) keeps them: a copy from motionhub at its id, a motion of the project's own under a name of its own. `--format-only` leaves out the hub's rules, for a motion that is not headed for motionhub; `--author` and `--was` check it as a pull request by that account, changing that published `motion.json`.
@@ -73,7 +73,7 @@ A motion against the [specification](../SPEC.md) and motionhub's rules. With no 
 npx @motionhub/cli share <dir> [--wait]
 ```
 
-A motion through the checks its pull request will run, against what is published, then uploaded to motionhub.dev. It prints a link and a code. Open the link and sign in with GitHub; motionhub asks for no permissions. Check the motion and type the code: motionhub's GitHub App opens the pull request on your behalf, from a `share/` branch, with your account and DCO sign-off recorded in an App-signed commit. The motion must have one author. Only that account can read its private draft. CLI 0.9.0 polls using a request header, never a token in the URL; motionhub.dev takes shares only from 0.9.0 and later. No git, `gh` or GitHub token is needed, so it works from a cloud agent too. `--wait` waits for the pull request, up to 30 minutes, and prints its address. A link works for a day. Shared again while your pull request is open, the new version is added to it.
+A motion through the checks its pull request will run, against what is published, then uploaded to motionhub.dev. It prints a link and a code. Open the link and sign in to motionhub.dev. Check the motion and type the code: motionhub's GitHub App opens the pull request on your behalf, from a `share/` branch, with your account and DCO sign-off recorded in an App-signed commit. The motion must have one author. Only that account can read its private draft. CLI 0.9.0 polls using a request header, never a token in the URL; motionhub.dev takes shares only from 0.9.0 and later. No git, `gh` or GitHub token is needed, so it works from a cloud agent too. `--wait` waits for the pull request, up to 30 minutes, and prints its address. A link works for a day. Shared again while your pull request is open, the new version is added to it.
 
 This is the only way to submit a motion. `share --pr` and `share --github` are removed in 0.10.0: `--pr` used to fork the repository with your own GitHub token, and those pull requests fail the ownership check, which does not check out fork code. To run the checks as an account without uploading, use `check --author`. [Share a motion](../CONTRIBUTING.md) explains what happens next. See [CHANGELOG.md](../CHANGELOG.md).
 
@@ -99,7 +99,7 @@ npx @motionhub/cli whoami
 npx @motionhub/cli logout
 ```
 
-`login` signs the command line in to motionhub.dev. It prints a link: open it, sign in with GitHub and confirm that it is you who started the login. Allow it only if you ran `login` yourself; a link someone sent you would sign their terminal in as you. The credential is kept in `~/.motionhub/`. `whoami` prints the account it belongs to. `logout` revokes it on motionhub.dev and deletes it.
+`login` signs the command line in to motionhub.dev. It prints a link: open it, sign in to motionhub.dev and confirm that it is you who started the login. Allow it only if you ran `login` yourself; a link someone sent you would sign their terminal in as you. The credential is kept in `~/.motionhub/`. `whoami` prints the account it belongs to. `logout` revokes it on motionhub.dev and deletes it.
 
 ## artifact upload
 

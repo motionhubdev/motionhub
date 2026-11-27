@@ -80,7 +80,7 @@ npx @motionhub/cli get @iamsuosi/lab-notebook   # into ./motions/@iamsuosi/lab-n
 On motionhub a motion is a directory of five files, and a directory for each tool that wants ready-made pieces (for your own project, [one `MOTION.md` is enough](docs/motion-md.md#start-with-one-file)):
 
 ```
-motions/@<scope>/<slug>/   a motion, id @<scope>/<slug>: its creator's GitHub name and its slug
+motions/@<scope>/<slug>/   a motion, id @<scope>/<slug>: its creator's handle and its slug
   motion.json     its id, version, name, one line, authors and licence
   MOTION.md       the look in words, for people and agents: essence, colour, type, motion, what to avoid
   tokens.json     the exact values, as W3C design tokens: colours, faces, durations, easings
@@ -130,13 +130,13 @@ Made a film whose look others should have? With the skill installed, ask your ag
 By hand:
 
 ```sh
-npx @motionhub/cli init <slug> --github <you>   # ./motions/<slug>/ with every required file to fill in, scoped to you
-npx @motionhub/cli share motions/<slug>         # the checks, then a link: sign in with GitHub to open the pull request
+npx @motionhub/cli init <slug> --handle <you>   # ./motions/<slug>/ with every required file to fill in, scoped to you
+npx @motionhub/cli share motions/<slug>         # the checks, then a link: sign in to open the pull request
 ```
 
-No git, gh or GitHub token is needed: open the link and sign in with GitHub. motionhub's GitHub App opens the pull request under your name.
+No git, gh or GitHub token is needed: open the link and sign in to motionhub.dev. motionhub's GitHub App opens the pull request under your name.
 
-Your motion is published as `@<your GitHub name>/<slug>`, and building on someone else's motion is welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has what is accepted and how it is reviewed.
+Your motion is published as `@<your handle>/<slug>`, and building on someone else's motion is welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has what is accepted and how it is reviewed.
 
 <details>
 <summary><b>What is in this repository</b></summary>

@@ -3,9 +3,9 @@
 # main's checker. The pull request's files are checked out beside it as data: nothing of the pull request is installed
 # or run. Its only credential is the read-only GITHUB_TOKEN.
 #
-# It judges: the accounts the pull request records (accounts/, against GitHub), the motions it adds or changes against
-# its author's account (and a change against the version on main), the published motions it takes out or moves away
-# (only one of their authors may), and a sign-off on each of its commits. Anything it cannot see whole fails. A pull
+# It judges: the accounts the pull request records (accounts/: only its submitter's, when motionhub opened it), the
+# motions it adds or changes against its author's account (and a change against the version on main), the published
+# motions it takes out or moves away (only one of their authors may), and a sign-off on each of its commits. Anything it cannot see whole fails. A pull
 # request motionhub's GitHub App opened for someone is judged as theirs (the repository variable MOTIONHUB_BOT names
 # the app's account, e.g. motionhub[bot]).
 name: ownership
@@ -104,8 +104,14 @@ jobs:
           # names of their own: the job's env (AUTHOR, AUTHOR_ID) would win over GITHUB_ENV's
           echo "SUBMITTER_ID=${who%% *}" >> "$GITHUB_ENV"
           echo "SUBMITTER=${who#* }" >> "$GITHUB_ENV"
-      - name: The accounts it records, against what GitHub says
-        run: node tools/check.mjs --accounts-was accounts --accounts pr/accounts
+      # motionhub.dev issues accounts: a pull request it opened records only its submitter's, one opened by hand none
+      - name: The accounts it records, only its submitter's
+        run: |
+          if [ -n "${SUBMITTER:-}" ]; then
+            node tools/check.mjs --accounts-was accounts --accounts pr/accounts --author "$SUBMITTER" --author-id "$SUBMITTER_ID"
+          else
+            node tools/check.mjs --accounts-was accounts --accounts pr/accounts
+          fi
       - name: The motions it adds, changes or takes out, against its author and what is published
         run: |
           set -f

@@ -165,7 +165,7 @@ test('a lock is refused when it names a place outside motions/ or a package with
 
 test('init starts a motion of the project\'s own in motions/<slug>/', async () => {
   const project = mkdtempSync(join(tmpdir(), 'project-'));
-  const r = await inDir(project, 'init', ['my-look', '--github', 'ana']);
+  const r = await inDir(project, 'init', ['my-look', '--handle', 'ana']);
   assert.equal(r.status, 0);
   assert.ok(existsSync(join(project, 'motions/my-look/motion.json')));
   assert.match(r.out, /motionhub share motions\/my-look/);

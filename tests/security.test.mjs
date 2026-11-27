@@ -1,7 +1,7 @@
 // Regression tests for authorization and credential disclosure, using synthetic values only.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {authorProblem, ownerId} from '../tools/security/ownership.mjs';
+import {authorProblem, handleOf, ownerId} from '../tools/security/ownership.mjs';
 import {sensitiveFile} from '../tools/security/package.mjs';
 import {validateAnswer, escapeComment} from '../.github/scripts/assistant.mjs';
 
@@ -14,6 +14,14 @@ test('one author can rename but cannot grant or transfer ownership', () => {
   assert.ok(authorProblem({authors: [{github: 'old'}, {github: 'other'}]}, motion('old'), accounts));
   assert.ok(authorProblem(motion('missing'), motion('old'), accounts));
   assert.equal(ownerId(motion('missing'), accounts), undefined);
+});
+test('an author is their handle since motion/0.7, and their GitHub username before it: one account either way', () => {
+  assert.equal(handleOf({handle: 'old'}), 'old');
+  assert.equal(handleOf({github: 'old'}), 'old');
+  assert.equal(handleOf({name: 'Old'}), undefined);
+  assert.equal(authorProblem({authors: [{handle: 'renamed'}]}, motion('old'), accounts), null, 'a 0.6 motion raised to 0.7 keeps its owner');
+  assert.equal(ownerId({authors: [{handle: 'old'}]}, accounts), 7);
+  assert.ok(authorProblem({authors: [{handle: 'other'}]}, motion('old'), accounts));
 });
 test('credential scanning blocks nested paths and values without echoing them', () => {
   for (const path of ['react/.env', 'react/.env.production', 'react/.AWS/credentials', 'react/id_ed25519', 'react/private.key', 'react/node_modules/a.js']) {

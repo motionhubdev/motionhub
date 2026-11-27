@@ -9,25 +9,26 @@
 //                                               exist yet) and not recorded
 //   motionhub get                               every motion ./motions.lock.json records, at its version: one missing is
 //                                               taken, one there is checked to be the copy as published
-//   motionhub init <slug> [--github <login>]    ./motions/<slug>/ with every required file but the poster, to fill in,
-//                                               scoped to the account gh is signed in as (or --github): its id is
-//                                               @<login>/<slug>
+//   motionhub init <slug> [--handle <handle>]   ./motions/<slug>/ with every required file but the poster, to fill in,
+//                                               scoped to the account `motionhub login` signed in (or --handle): its
+//                                               id is @<handle>/<slug>
 //   motionhub tokens [MOTION.md] [--out <file>] a motion in one file's tokens, as tokens.json; by default the project's
 //                                               (./MOTION.md, else ./motion/MOTION.md), to standard output
 //   motionhub share <dir> [--wait]              the pull request's checks, then the motion uploaded to motionhub.dev and a
-//                                               link (and a code) where the person signs in with GitHub and opens the
+//                                               link (and a code) where the person signs in to motionhub.dev and opens the
 //                                               pull request; nothing of git, gh or a GitHub token is needed here. With
 //                                               --wait, waits for the pull request and prints its address. --pr and
 //                                               --github are refused: a fork is not a way to submit
 
-import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join, relative, resolve} from 'node:path';
 import {gunzipSync} from 'node:zlib';
+import {handleOf} from './security/ownership.mjs';
 import {ID, SPEC, checkMotion, expandTokens, listMotions, motionId, parseFrontMatter, place} from './check.mjs';
 import {files as filesOf, tgz} from './pack.mjs';
 import {privateIndex, privatePackage} from './private-cli.mjs';
+import {signedIn} from './artifact-cli.mjs';
 
 export const HUB = 'https://motionhub.dev';
 
@@ -175,13 +176,13 @@ export async function main(command, args, base = HUB) {
     const text = (localized) => (localized ? localized.en ?? Object.values(localized)[0] : undefined);
     for (const m of rows) {
       const about = [m.catalogs?.length && `in ${m.catalogs.join(', ')}`, text(m.fit?.for) && `for: ${text(m.fit.for)}`, text(m.fit?.not) && `not for: ${text(m.fit.not)}`].filter(Boolean);
-      console.log(`${m.slug}  ${m.version}  ${text(m.line)}  (${about.map((a) => `${a}; `).join('')}looks: ${m.tags.join(', ')}; by ${m.authors.map((a) => a.github).join(', ')}; ${m.license.text}${m.tools.length ? `; for ${m.tools.join(', ')}` : ''})`);
+      console.log(`${m.slug}  ${m.version}  ${text(m.line)}  (${about.map((a) => `${a}; `).join('')}looks: ${m.tags.join(', ')}; by ${m.authors.map(handleOf).join(', ')}; ${m.license.text}${m.tools.length ? `; for ${m.tools.join(', ')}` : ''})`);
     }
     console.log(rows.length ? `${rows.length} motion(s); get one with: motionhub get <id>` : 'No motion has every one of those words');
     return 0;
   }
   const value = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : undefined; };
-  const slug = args.find((a, i) => !a.startsWith('--') && !['--out', '--github'].includes(args[i - 1]));
+  const slug = args.find((a, i) => !a.startsWith('--') && !['--out', '--handle'].includes(args[i - 1]));
   if (command === 'tokens') {
     if (args.includes('--out') && (!value('--out') || value('--out').startsWith('--'))) { console.error('usage: motionhub tokens [MOTION.md] [--out <file>]: --out needs a path'); return 2; }
     const file = slug ?? projectMotion();
@@ -197,7 +198,7 @@ export async function main(command, args, base = HUB) {
   if (command === 'share') {
     // a fork pull request fails ownership (it will not check out fork code). The only submission is the site intake
     if (args.includes('--pr') || args.includes('--github')) {
-      console.error('share submits only through motionhub.dev. Run `motionhub share <dir>` (add --wait to wait for the pull request), open the link it prints and sign in with GitHub: motionhub\'s GitHub App opens the pull request from a share/ branch. --pr forked this repository with your own GitHub token and is removed, because those pull requests fail the ownership check. --github on share is removed; `motionhub check <dir> --author <login>` runs the checks as that account.');
+      console.error('share submits only through motionhub.dev. Run `motionhub share <dir>` (add --wait to wait for the pull request), open the link it prints and sign in to motionhub.dev: motionhub\'s GitHub App opens the pull request from a share/ branch. --pr forked this repository with your own GitHub token and is removed, because those pull requests fail the ownership check. --github on share is removed; `motionhub check <dir> --author <handle>` runs the checks as that account.');
       return 2;
     }
     if (!slug) { console.error('usage: motionhub share <dir> [--wait]'); return 2; }
@@ -205,12 +206,13 @@ export async function main(command, args, base = HUB) {
     return 0;
   }
   if (command === 'init') {
-    if (!slug || !/^(?=.{3,40}$)[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) { console.error('usage: motionhub init <slug> [--github <login>]  (3 to 40 characters of a-z, 0-9 and single hyphens)'); return 2; }
+    if (!slug || !/^(?=.{3,40}$)[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) { console.error('usage: motionhub init <slug> [--handle <handle>]  (3 to 40 characters of a-z, 0-9 and single hyphens)'); return 2; }
+    if (args.includes('--github')) { console.error('init takes --handle <handle>, your handle on motionhub.dev, in place of --github'); return 2; }
     const out = resolve(MOTIONS, slug);
     if (existsSync(out)) throw new Error(`${out} already exists`);
-    const account = value('--github') ? {login: value('--github')} : githubAccount();
+    const account = value('--handle') ? {login: value('--handle')} : await signedIn();
     for (const [path, data] of scaffold(slug, account)) { mkdirSync(dirname(join(out, path)), {recursive: true}); writeFileSync(join(out, path), data); }
-    console.log(`${out}, the motion @${account?.login ? account.login.toLowerCase() : 'your-github-login'}/${slug}, authored by ${account?.login ? `${account.login}${value('--github') ? '' : ' (the account gh is signed in as)'}` : 'nobody yet: set scope and authors in motion.json'}: fill in motion.json, MOTION.md, tokens.json and CREDITS.md, add poster.jpg (a frame of a film made in it, 960 to 3840 pixels wide, at most 500 KB) and any tool directory, then: motionhub share ${relative(process.cwd(), out)}`);
+    console.log(`${out}, the motion @${account?.login ? account.login.toLowerCase() : 'your-handle'}/${slug}, authored by ${account?.login ? `${account.login}${value('--handle') ? '' : ' (the account motionhub login signed in)'}` : 'nobody yet: run motionhub login, or set scope and authors in motion.json'}: fill in motion.json, MOTION.md, tokens.json and CREDITS.md, add poster.jpg (a frame of a film made in it, 960 to 3840 pixels wide, at most 500 KB) and any tool directory, then: motionhub share ${relative(process.cwd(), out)}`);
     return 0;
   }
   if (!slug) {
@@ -239,27 +241,13 @@ export async function main(command, args, base = HUB) {
   return 0;
 }
 
-const run = (cmd, args, cwd) => spawnSync(cmd, args, {cwd, encoding: 'utf8'});
-
-/** The GitHub account gh is signed in as, or undefined. */
-export function githubAccount() {
-  const r = run('gh', ['api', 'user']);
-  return r.error || r.status !== 0 ? undefined : JSON.parse(r.stdout);
-}
-
-/** A GitHub account by login, as GitHub gives it now ({login, id, …}), or undefined. */
-export function githubUser(login) {
-  const r = run('gh', ['api', `users/${encodeURIComponent(login)}`]);
-  return r.error || r.status !== 0 ? undefined : JSON.parse(r.stdout);
-}
-
 /** A new motion's starting files, by path: every required file but the poster, with what each part is for, scoped to its author. */
 export function scaffold(slug, author) {
   const title = slug.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
   const color = (hex) => ({colorSpace: 'srgb', components: [1, 3, 5].map((i) => Math.round((parseInt(hex.slice(i, i + 2), 16) / 255) * 10000) / 10000), hex});
   return new Map([
-    ['motion.json', JSON.stringify({spec: SPEC, scope: (author?.login || 'your-github-login').toLowerCase(), slug, version: '1.0.0', name: {en: title}, line: {en: `One sentence: what ${title} looks like and what it is for.`},
-      authors: [{name: author?.name || author?.login || 'Your name', github: author?.login || 'your-github-login'}], license: {text: 'CC-BY-4.0', code: 'MIT'}, tags: [],
+    ['motion.json', JSON.stringify({spec: SPEC, scope: (author?.login || 'your-handle').toLowerCase(), slug, version: '1.0.0', name: {en: title}, line: {en: `One sentence: what ${title} looks like and what it is for.`},
+      authors: [{name: author?.name || author?.login || 'Your name', handle: (author?.login || 'your-handle').toLowerCase()}], license: {text: 'CC-BY-4.0', code: 'MIT'}, tags: [],
       fit: {for: {en: `The subjects and kinds of film ${title} is for, and any footage the maker must bring.`}, not: {en: 'What it handles badly.'}}}, null, 2) + '\n'],
     ['MOTION.md', `# ${title}\n\nWhat a film in this motion feels like, in a sentence or two. Describe the look and the motion, never a particular film.\n\n## Essence\n\nThe few traits that make a frame read as ${title} at a glance, and what it is easily confused with.\n\n## Colour\n\nWhat each colour token is for, and what is never coloured.\n\n## Type\n\nThe faces and their roles, sizes, and how words sit in the frame.\n\n## Motion\n\nHow things arrive, change and leave; the easing and the durations in seconds; how motion follows the narration or music; what never moves.\n\n## Avoid\n\nThe mistakes this look invites, and what to do instead.\n`],
     ['tokens.json', JSON.stringify({
@@ -273,19 +261,10 @@ export function scaffold(slug, author) {
 }
 
 /**
- * A GitHub user by login, as GitHub gives it now, or null: asked with GITHUB_TOKEN or GH_TOKEN when one is set, and
- * through gh when GitHub turns an unauthenticated ask away (60 an hour, shared by everyone behind one address).
+ * The hub's recorded accounts, so the checks here judge a rename as the server will. They never replace the server's
+ * authorization: a handle not recorded yet is the submitter's own, which motionhub.dev records with the pull request.
  */
-async function lookupUser(login) {
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-  const response = await fetch(`https://api.github.com/users/${login}`, {headers: {accept: 'application/vnd.github+json', 'user-agent': 'motionhub-cli', ...(token ? {authorization: `Bearer ${token}`} : {})}, signal: AbortSignal.timeout(20000)}).catch(() => undefined);
-  if (response?.ok) return response.json();
-  if (!token && (!response || response.status === 403 || response.status === 429)) return githubUser(login) ?? null;
-  return null;
-}
-
-/** Public account mappings make CLI rename checks consistent with the server; they never replace server authorization. */
-async function sharingAccounts(base, manifest, was) {
+async function sharingAccounts(base, was) {
   const registry = await (await get(`${base}/api/accounts.json`)).json();
   if (!registry || typeof registry !== 'object' || Array.isArray(registry)) throw new Error('the hub account registry is invalid');
   const accounts = new Map();
@@ -293,14 +272,7 @@ async function sharingAccounts(base, manifest, was) {
     if (!Number.isSafeInteger(id) || id <= 0) throw new Error('the hub account registry is invalid');
     accounts.set(login.toLowerCase(), id);
   }
-  for (const a of was?.authors ?? []) if (!accounts.has(String(a.github).toLowerCase())) throw new Error('the published author is not recorded; contact the maintainer');
-  for (const login of new Set([manifest.scope, ...(manifest.authors ?? []).map(a => a.github)].filter(l => typeof l === 'string').map(l => l.toLowerCase()))) {
-    if (accounts.has(login)) continue;
-    if (!/^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$/.test(login)) throw new Error('invalid GitHub author login');
-    const user = await lookupUser(login);
-    if (!Number.isSafeInteger(user?.id) || user.id <= 0 || user.type !== 'User') throw new Error('the GitHub author could not be verified; try again later');
-    accounts.set(login, user.id);
-  }
+  for (const a of was?.authors ?? []) if (!accounts.has(String(handleOf(a)).toLowerCase())) throw new Error('the published author is not recorded; contact the maintainer');
   return accounts;
 }
 
@@ -316,7 +288,7 @@ export async function shareLink(dir, {wait = false, log = () => {}, ask = 5000, 
   const id = motionId(manifest);
   const published = (await index(base)).find((m) => m.slug === id);
   const was = published ? await (await get(`${base}/m/${id}/motion.json`)).json() : undefined;
-  const accounts = await sharingAccounts(base, manifest, was);
+  const accounts = await sharingAccounts(base, was);
   // judged by the hub's accounts, but in its own place: a project's motions/<name>/ is not the catalogue (SPEC.md §13)
   const issues = checkMotion(dir, {was, shared: true, accounts, catalogue: place(dir).catalogue});
   if (issues.length) throw new Error(`${dir} does not pass the hub's checks:\n${issues.map((i) => `${i.at}  ${i.code}  ${i.message}`).join('\n')}`);

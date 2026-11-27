@@ -40,7 +40,7 @@ Made a film whose look others should have? With the skill installed, ask your ag
 /motionhub share this project's look as a motion
 ```
 
-It writes the motion as `@<your GitHub login>/<slug>`, takes the look from the project and never the film's story, runs the checks the pull request will run and shows you the result. With your yes, it gives you a link and a code: open the link, sign in with GitHub, type the code, and the pull request opens under your name. No git, GitHub CLI or token is needed, so a cloud agent can do it too. [Share a motion](../CONTRIBUTING.md) has the rules it follows and the commands it runs.
+It writes the motion as `@<your handle>/<slug>`, takes the look from the project and never the film's story, runs the checks the pull request will run and shows you the result. With your yes, it gives you a link and a code: open the link, sign in to motionhub.dev, type the code, and the pull request opens under your name. No git, GitHub CLI or token is needed, so a cloud agent can do it too. [Share a motion](../CONTRIBUTING.md) has the rules it follows and the commands it runs.
 
 ## From the command line
 
@@ -51,7 +51,7 @@ npx @motionhub/cli get @iamsuosi/red-pencil     # a second look, beside the firs
 npx @motionhub/cli get                          # on another computer: every motion motions.lock.json records
 ```
 
-`get` takes a motion's id: its creator's GitHub name and its slug, `@iamsuosi/lab-notebook`. The [command line](cli.md) page has every command.
+`get` takes a motion's id: its creator's handle and its slug, `@iamsuosi/lab-notebook`. The [command line](cli.md) page has every command.
 
 ## Several motions in one film
 
