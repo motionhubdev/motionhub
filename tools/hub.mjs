@@ -16,9 +16,11 @@
 //                                               (./MOTION.md, else ./motion/MOTION.md), to standard output
 //   motionhub share <dir> [--wait]              the pull request's checks, then the motion uploaded to motionhub.dev and a
 //                                               link (and a code) where the person signs in to motionhub.dev and opens the
-//                                               pull request; nothing of git, gh or a GitHub token is needed here. With
-//                                               --wait, waits for the pull request and prints its address. --pr and
-//                                               --github are refused: a fork is not a way to submit
+//                                               pull request; nothing of git, gh or a GitHub token is needed here. Signed
+//                                               in with `motionhub login`, in a terminal, the person certifies the DCO
+//                                               here instead, and the pull request is opened at once. With --wait, waits
+//                                               for the pull request and prints its address. --pr and --github are
+//                                               refused: a fork is not a way to submit
 
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -28,7 +30,8 @@ import {handleOf} from './security/ownership.mjs';
 import {ID, SPEC, checkMotion, expandTokens, listMotions, motionId, parseFrontMatter, place} from './check.mjs';
 import {files as filesOf, tgz} from './pack.mjs';
 import {privateIndex, privatePackage} from './private-cli.mjs';
-import {signedIn} from './artifact-cli.mjs';
+import {keptToken, origin, signedIn} from './artifact-cli.mjs';
+import {createInterface} from 'node:readline/promises';
 
 export const HUB = 'https://motionhub.dev';
 
@@ -202,7 +205,9 @@ export async function main(command, args, base = HUB) {
       return 2;
     }
     if (!slug) { console.error('usage: motionhub share <dir> [--wait]'); return 2; }
-    console.log(await shareLink(resolve(slug), {wait: args.includes('--wait'), log: (l) => console.log(l)}, base));
+    // signed in for this hub, a person at a terminal may submit from here; an agent, with no terminal, gives the link
+    const token = base === origin ? await keptToken().catch(() => '') : '';
+    console.log(await shareLink(resolve(slug), {wait: args.includes('--wait'), log: (l) => console.log(l), token, certify: certifyHere}, base));
     return 0;
   }
   if (command === 'init') {
@@ -278,12 +283,25 @@ async function sharingAccounts(base, was) {
 }
 
 /**
+ * Whether the person at this terminal certifies the DCO for `id` and its `files`, typed as a yes. False with no terminal
+ * to ask (an agent, a pipe): a share is then submitted from its link, by the person, on motionhub.dev.
+ */
+export async function certifyHere({id, version, files}) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return false;
+  console.log(`${id} ${version} is ready to open its pull request. These files become public when you confirm, even if the pull request is closed later:\n  ${files.join('\n  ')}`);
+  console.log('Confirm only for a share you started yourself. By confirming you certify the Developer Certificate of Origin 1.1 (https://developercertificate.org): you have the right to contribute this motion under its licence.');
+  const rl = createInterface({input: process.stdin, output: process.stdout});
+  try { return /^yes$/i.test((await rl.question('Type yes to certify and open the pull request, anything else to get a link instead: ')).trim()); }
+  finally { rl.close(); }
+}
+
+/**
  * Share a motion through motionhub.dev, with no git, gh or GitHub token here: check it as its pull request will be
  * checked (all but who you are, which the site and the pull request judge), pack it, upload it, and say where to open
  * the pull request: a link to sign in with GitHub at and a code to type there. With `wait`, ask until the pull request
  * is open (or `log` says it is not yet) and give its address. `ask` is the time between asks, in ms.
  */
-export async function shareLink(dir, {wait = false, log = () => {}, ask = 5000, most = 30 * 60 * 1000} = {}, base = HUB) {
+export async function shareLink(dir, {wait = false, log = () => {}, ask = 5000, most = 30 * 60 * 1000, token = '', certify} = {}, base = HUB) {
   if (!existsSync(join(dir, 'motion.json'))) throw new Error(`${dir} has no motion.json: share a motion's directory (motionhub init <slug> makes one)`);
   const manifest = JSON.parse(readFileSync(join(dir, 'motion.json'), 'utf8'));
   const id = motionId(manifest);
@@ -300,13 +318,20 @@ export async function shareLink(dir, {wait = false, log = () => {}, ask = 5000, 
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`motionhub.dev did not take it (${res.status}): ${body.error ?? res.statusText}`);
   const lines = [
-    `${id} ${manifest.version} passes the checks and is uploaded${published ? `, after ${published.version}` : ''}. Nothing is published yet. To open its pull request under your GitHub name:`,
+    `${id} ${manifest.version} passes the checks and is uploaded${published ? `, after ${published.version}` : ''}. Nothing is published yet. To open its pull request under your name:`,
     `  1. Open ${body.url}`,
-    `  2. Sign in with GitHub, check the motion, and type this code: ${body.code}`,
+    `  2. Sign in to motionhub.dev, check the motion, and type this code: ${body.code}`,
     `Files to publish: ${filesOf(dir).join(', ')}`,
     `All listed files become public when you confirm the pull request.`,
     `The link works until ${body.expires}. Never type the code on a page you did not open from this terminal.`,
   ];
+  // signed in, and certified by the person at this terminal: submitted from here, as the share page would
+  if (token && certify && await certify({id, version: manifest.version, files: filesOf(dir)})) {
+    const sent = await fetch(`${base}/api/submissions/${body.id}/submit`, {method: 'POST', headers: {'content-type': 'application/json', 'user-agent': 'motionhub-cli', authorization: `Bearer ${token}`}, body: JSON.stringify({code: body.code, mine: true, dco: true})}).catch(() => undefined);
+    const done = sent ? await sent.json().catch(() => ({})) : {};
+    if (sent?.ok && done.prUrl) return `The pull request is open: ${done.prUrl}`;
+    lines.unshift(`It was not submitted from here: ${done.error ?? (sent ? `motionhub.dev answered ${sent.status}` : 'motionhub.dev could not be reached')}. Submit it from its link instead.`);
+  }
   if (!wait) return lines.join('\n');
   log(lines.join('\n'));
   for (const until = Date.now() + most; Date.now() < until;) {

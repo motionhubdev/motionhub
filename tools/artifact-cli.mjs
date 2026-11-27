@@ -53,6 +53,9 @@ export async function bytesAt(path, token) {
 
 export {api, base as origin};
 
+/** The credential `motionhub login` kept for this origin, or '' when the command line is not signed in. */
+export const keptToken = () => readToken();
+
 /** The account the command line is signed in as (`{id, login, name}`, `login` its handle), or undefined: never signs in. */
 export async function signedIn() {
   const token = await readToken();
