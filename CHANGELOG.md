@@ -6,7 +6,8 @@ Breaking change. A motion belongs to a motionhub account, and its author is name
 
 - The format is `motion/0.7`: an author is `{"name", "handle"}` and `scope` is a handle on the hub that holds the motion. A motion at `motion/0.6` or earlier is read as before, its `github` read as the handle.
 - `init` writes a `motion/0.7` motion scoped to the account `motionhub login` signed in, or to `--handle <handle>`. `--github` is removed, and `init` no longer asks `gh`.
-- `share` no longer asks GitHub about an author that is not recorded yet: motionhub.dev records the submitter's account with the pull request.
+- `share` no longer asks GitHub about an author that is not recorded yet: motionhub.dev records the submitter's account with the pull request. Sign in to motionhub.dev once before a first share, so the handle is yours.
+- `@motionhub/cli/hub` no longer exports `githubAccount` or `githubUser`.
 - In the catalogue, only the pull request motionhub.dev opens records an account, and only its submitter's, once. A pull request opened by hand records none. An account id may be one motionhub.dev issues, above any GitHub gives.
 
 ## 0.10.0

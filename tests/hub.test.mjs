@@ -171,6 +171,17 @@ test('init starts a motion of the project\'s own in motions/<slug>/', async () =
   assert.match(r.out, /motionhub share motions\/my-look/);
 });
 
+test('init needs no network: signed in but with motionhub.dev out of reach, it starts the motion and says to pass --handle', () => {
+  const home = mkdtempSync(join(tmpdir(), 'home-')), project = mkdtempSync(join(tmpdir(), 'project-'));
+  // a kept credential for an origin nothing answers at
+  mkdirSync(join(home, '.motionhub'));
+  writeFileSync(join(home, '.motionhub', 'artifact-token-127.0.0.1%3A9'), 'kept-token');
+  const bin = new URL('../bin/motionhub.mjs', import.meta.url).pathname;
+  const out = execFileSync(process.execPath, [bin, 'init', 'my-look'], {cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, HOME: home, USERPROFILE: home, MOTIONHUB_ARTIFACT_ORIGIN: 'https://127.0.0.1:9'}});
+  assert.match(out, /your-handle\/my-look/);
+  assert.equal(JSON.parse(readFileSync(join(project, 'motions/my-look/motion.json'), 'utf8')).scope, 'your-handle');
+});
+
 /** The smallest JPEG the checker reads: its size, and nothing to decode. */
 const jpeg = (w, h) => Buffer.concat([Buffer.from([0xff, 0xd8]), Buffer.from([0xff, 0xc0, 0x00, 0x11, 0x08, h >> 8, h & 255, w >> 8, w & 255, 0x03, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1]), Buffer.from([0xff, 0xd9])]);
 

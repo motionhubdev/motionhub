@@ -1,7 +1,7 @@
 // Private motions from the command line: a motion of your own, kept on motionhub.dev for you alone, signed in with
 // `motionhub login` (tools/artifact-cli.mjs). A private motion is a motion in this format like any other, checked here
 // against the format (tools/check.mjs, not the hub's rules: it is published nowhere) and on motionhub.dev against the
-// package rules a share meets; its scope and its one author are your own login. Nothing of it is in git, in the index
+// package rules a share meets; its scope and its one author are your own handle. Nothing of it is in git, in the index
 // or on a page, and only your account can list, download or delete it. To publish one, share it (motionhub share).
 //
 //   motionhub private push <dir>                  check, pack and keep a version (a version, once kept, never changes)
@@ -27,7 +27,7 @@ export function packPrivate(dir) {
   if (!existsSync(join(dir, 'motion.json'))) throw new Error(`${dir} has no motion.json: push a motion's directory (motionhub init <slug> makes one)`);
   const manifest = JSON.parse(readFileSync(join(dir, 'motion.json'), 'utf8'));
   const id = motionId(manifest);
-  if (!id?.startsWith('@')) throw new Error(`${dir}: a private motion has a scope, your GitHub login: set "scope" in motion.json`);
+  if (!id?.startsWith('@')) throw new Error(`${dir}: a private motion has a scope, your handle on motionhub.dev: set "scope" in motion.json`);
   const issues = checkMotion(dir, {hub: false});
   if (issues.length) throw new Error(`${dir} is not a motion in the format yet:\n${issues.map((i) => `${i.at}  ${i.code}  ${i.message}`).join('\n')}`);
   const files = filesOf(dir);

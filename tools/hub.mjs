@@ -210,7 +210,8 @@ export async function main(command, args, base = HUB) {
     if (args.includes('--github')) { console.error('init takes --handle <handle>, your handle on motionhub.dev, in place of --github'); return 2; }
     const out = resolve(MOTIONS, slug);
     if (existsSync(out)) throw new Error(`${out} already exists`);
-    const account = value('--handle') ? {login: value('--handle')} : await signedIn();
+    // the signed-in account's handle when motionhub.dev can say it; init itself needs no network
+    const account = value('--handle') ? {login: value('--handle')} : await signedIn().catch((e) => { console.error(`motionhub.dev could not say who is signed in (${e.message}): pass --handle <handle>, or fill in scope and authors in motion.json`); return undefined; });
     for (const [path, data] of scaffold(slug, account)) { mkdirSync(dirname(join(out, path)), {recursive: true}); writeFileSync(join(out, path), data); }
     console.log(`${out}, the motion @${account?.login ? account.login.toLowerCase() : 'your-handle'}/${slug}, authored by ${account?.login ? `${account.login}${value('--handle') ? '' : ' (the account motionhub login signed in)'}` : 'nobody yet: run motionhub login, or set scope and authors in motion.json'}: fill in motion.json, MOTION.md, tokens.json and CREDITS.md, add poster.jpg (a frame of a film made in it, 960 to 3840 pixels wide, at most 500 KB) and any tool directory, then: motionhub share ${relative(process.cwd(), out)}`);
     return 0;
