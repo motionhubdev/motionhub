@@ -99,7 +99,7 @@ export const QuadraticGraph = (props: QuadraticGraphProps) => {
       <path d={`M${bounds.right} ${origin[1]}l-12 -6v12Z`} fill="var(--color-ink)" />
       <path d={`M${origin[0]} ${bounds.top}l-6 12h12Z`} fill="var(--color-ink)" />
 
-      <g fontFamily="var(--font-math)" fontSize="20" fill="var(--color-ink)">
+      <g fontFamily="var(--font-math)" fontSize="23" fill="var(--color-ink)">
         {[-2, -1, 1, 2, 3, 4].map((x) => <text key={`tx${x}`} x={px(x)} y={origin[1] + 37} textAnchor="middle">{x}</text>)}
         {[1, 2, 3, 4, 5].map((y) => <text key={`ty${y}`} x={origin[0] - 20} y={py(y) + 7} textAnchor="end">{y}</text>)}
         <text x={origin[0] - 20} y={origin[1] + 27} textAnchor="end">0</text>
@@ -129,15 +129,15 @@ export const QuadraticGraph = (props: QuadraticGraphProps) => {
       <g fontFamily="var(--font-math)" fontSize="23" fill="var(--color-ink)">
         <text x={px(x0) - 18} y={py(f0) - 20} textAnchor="end">P = ({formatNumber(x0)}, {formatNumber(f0)})</text>
         {hasSecant ? (
-          <text x={px(qx) + 18} y={py(qy) - 20}>
+          <text x={px(qx) + 18} y={py(qy) - 20} opacity={construction}>
             {showQCoordinates ? `Q = (${formatNumber(qx)}, ${formatNumber(qy)})` : 'Q'}
           </text>
         ) : null}
         {hasSecant && Math.abs(h) >= 0.35 ? (
-          <>
+          <g opacity={construction}>
             <text x={(px(x0) + px(qx)) / 2} y={py(f0) + 38} textAnchor="middle">h = {formatNumber(h)}</text>
             <text x={px(qx) + 18} y={(py(f0) + py(qy)) / 2}>Δy = {formatNumber(qy - f0)}</text>
-          </>
+          </g>
         ) : null}
       </g>
     </g>

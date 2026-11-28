@@ -28,15 +28,10 @@ export const CoordinateField = ({
   height?: number;
   step?: number;
 }) => {
+  if (step <= 0) {
+    throw new Error('Grid step must be positive.');
+  }
   const id = useId().replace(/:/g, '');
-  const vertical = [];
-  const horizontal = [];
-  for (let gx = 0; gx <= width; gx += step) {
-    vertical.push(<line key={`v${gx}`} x1={x + gx} y1={y} x2={x + gx} y2={y + height} />);
-  }
-  for (let gy = 0; gy <= height; gy += step) {
-    horizontal.push(<line key={`h${gy}`} x1={x} y1={y + gy} x2={x + width} y2={y + height} />);
-  }
   return (
     <svg width="1920" height="1080" style={{position: 'absolute', inset: 0, pointerEvents: 'none'}} aria-hidden="true">
       <defs>
