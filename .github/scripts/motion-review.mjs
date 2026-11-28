@@ -1,7 +1,7 @@
 // A motion submission review, with OpenCode + a configured LLM kept apart from GitHub's write credential. prepare captures a
 // trusted main revision and a submission's public files as data; OpenCode reads that checkout with no shell, edit,
 // network or subagent tools; publish revalidates the live pull request before leaving one review. Only this program
-// chooses APPROVE versus COMMENT, and it never requests changes or merges.
+// chooses APPROVE versus COMMENT. motion-merge.mjs, not this program, handles the separate automatic merge gate.
 import {appendFileSync, existsSync, lstatSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -13,7 +13,7 @@ const alreadyReviewed = (reviews, head) => reviews.some((review) => review.user?
   && String(review.body ?? '').includes(`${MARKER}${head} -->`));
 // A model cannot override a person's outstanding request for changes. A later approval or dismissal clears it;
 // main's branch rules dismiss stale reviews on a new push.
-const changesRequested = (reviews) => {
+export const changesRequested = (reviews) => {
   const latest = new Map();
   for (const review of [...reviews].sort((a, b) => String(a.submitted_at ?? '').localeCompare(String(b.submitted_at ?? '')) || (a.id ?? 0) - (b.id ?? 0))) {
     if (review.user?.login !== 'github-actions[bot]' && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)) latest.set(review.user?.id ?? review.user?.login, review.state);
@@ -168,7 +168,7 @@ const escapeComment = (value) => value.replace(/[\u0000-\u0008\u000b\u000c\u000e
 function reviewBody(context, result, approve, automatic, humanBlock) {
   const lines = [`${MARKER}${context.head} -->`, '## OpenCode motion review', ''];
   lines.push(approve
-    ? '**Approved automatically.** The required checks passed, the submitted images were inspected, and no blocking issue or human-review request was reported. This review does not merge the pull request.'
+    ? '**Approved automatically.** The required checks passed, the submitted images were inspected, and no blocking issue or human-review request was reported. Approval and merge are separate steps; this review alone does not merge the pull request.'
     : '**Reviewer notes; no automatic approval.** A maintainer still decides.');
   lines.push('', escapeComment(result.summary));
   if (result.findings.length) {

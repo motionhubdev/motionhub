@@ -175,3 +175,39 @@ jobs:
           MOTIONHUB_BOT: ${{ vars.MOTIONHUB_BOT }}
           OPENCODE_AUTO_APPROVE: ${{ vars.OPENCODE_AUTO_APPROVE }}
         run: node .github/scripts/motion-review.mjs publish "$RUNNER_TEMP/input/review-context.json" "$RUNNER_TEMP/answer/result.json"
+
+  # A separate identity and switch are required for merging. GITHUB_TOKEN only reads here; the dedicated merge App's
+  # token is minted after a clean model result and is used again for every live gate and the exact-SHA merge request.
+  merge:
+    name: motion-review / merge
+    needs: [context, infer, publish]
+    if: needs.context.outputs.review == 'ready' && vars.OPENCODE_AUTO_MERGE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.context.outputs.source }}
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: motion-review-context
+          path: ${{ runner.temp }}/input
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: motion-review-result
+          path: ${{ runner.temp }}/answer
+      - name: Merge only an approved, unchanged, eligible motion submission
+        env:
+          MOTIONHUB_BOT: ${{ vars.MOTIONHUB_BOT }}
+          OPENCODE_AUTO_MERGE: ${{ vars.OPENCODE_AUTO_MERGE }}
+          MOTION_MERGE_APP_ID: ${{ secrets.MOTION_MERGE_APP_ID }}
+          MOTION_MERGE_APP_PRIVATE_KEY: ${{ secrets.MOTION_MERGE_APP_PRIVATE_KEY }}
+        run: node .github/scripts/motion-merge.mjs "$RUNNER_TEMP/input/review-context.json" "$RUNNER_TEMP/answer/result.json"
