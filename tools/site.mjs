@@ -115,12 +115,19 @@ const HEADERS = `/api/*
 `;
 
 /**
+ * Handles a creator's page is kept at, by the hub's choice: an account that publishes under one of these has its page
+ * there, whatever else it publishes under (HUB.md, "/creators/"). `motionhub` is the official scope, held by an account
+ * that has published under its person's own handle too; its page is the official one.
+ */
+export const PAGES = ['motionhub'];
+
+/**
  * The creators' page addresses: one creator per account (`accounts`, handle in lowercase → id; a handle not
  * recorded is its own account), with every login it has published under. `key` is its page's address: a scope it
- * publishes under, the first A to Z, else its first login A to Z. Every other login gets a page that sends a visitor
- * to the key's, so an address once given keeps working even when a new scope moves the key.
+ * publishes under that is one of `pages`, else the first A to Z, else its first login A to Z. Every other login gets
+ * a page that sends a visitor to the key's, so an address once given keeps working even when a new scope moves the key.
  */
-export function creatorKeys(rows, accounts = new Map()) {
+export function creatorKeys(rows, accounts = new Map(), pages = PAGES) {
   const who = (login) => accounts.get(login) ?? `login:${login}`;
   const groups = new Map();
   for (const r of rows) for (const a of r.authors) {
@@ -132,7 +139,8 @@ export function creatorKeys(rows, accounts = new Map()) {
   for (const r of rows) if (r.scope && groups.has(who(r.scope.toLowerCase()))) groups.get(who(r.scope.toLowerCase())).scopes.add(r.scope.toLowerCase());
   const keys = new Map();
   for (const g of groups.values()) {
-    const key = [...(g.scopes.size ? g.scopes : g.logins)].sort()[0];
+    const own = [...(g.scopes.size ? g.scopes : g.logins)].sort();
+    const key = own.find((handle) => pages.includes(handle)) ?? own[0];
     for (const login of g.logins) keys.set(login, key);
   }
   return keys;

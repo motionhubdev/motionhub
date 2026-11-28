@@ -105,6 +105,8 @@ test('a creator has one page, at a key every build agrees on; their other logins
   assert.deepEqual([...keys].sort(), [['bo', 'bo'], ['tess', 'tess'], ['tester', 'tess']], 'a scope they publish under, the first A to Z');
   assert.deepEqual(creatorKeys([...rows].reverse(), accounts), keys, 'whatever the order of the motions');
   assert.deepEqual([...creatorKeys(rows)].sort(), [['bo', 'bo'], ['tess', 'tess'], ['tester', 'tester']], 'unrecorded logins are each their own');
+  assert.deepEqual([...creatorKeys(rows, accounts, ['tester'])].sort(), [['bo', 'bo'], ['tess', 'tester'], ['tester', 'tester']], 'a page the hub keeps at one of its scopes is there, whatever comes first A to Z');
+  assert.deepEqual([...creatorKeys(rows, accounts, ['nobody'])].sort(), [...keys].sort(), 'a page handle the account does not publish under changes nothing');
   const out = mkdtempSync(join(tmpdir(), 'site-'));
   writeSiteFiles(out, rows, [], accounts);
   assert.deepEqual(readFileSync(join(out, '_redirects'), 'utf8').trim().split('\n'), [
