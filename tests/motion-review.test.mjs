@@ -68,6 +68,8 @@ test('OpenCode reads a generic OpenAI-compatible provider from LLM secrets', () 
   assert.equal(config.providers.configured.settings.baseURL, '{env:LLM_BASE_URL}');
   assert.equal(config.providers.configured.models.review.modelID, '{env:LLM_MODEL}');
   assert.match(config.agents['motion-review'].system, /Always write every piece of review prose in English/);
+  assert.match(config.agents['motion-review'].system, /firstTime is the only authoritative first-submission signal/);
+  assert.match(readFileSync(new URL('../.github/opencode/prompt.txt', import.meta.url), 'utf8'), /a newly recorded handle alone is not a new account/);
   assert.match(readFileSync(new URL('../.github/opencode/prompt.txt', import.meta.url), 'utf8'), /Always write all review prose in English/);
   assert.match(readFileSync(new URL('../REVIEW.md', import.meta.url), 'utf8'), /Always write every part of it in English/);
 });
