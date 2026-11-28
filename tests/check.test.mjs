@@ -634,6 +634,8 @@ test('a pull request motionhub opened for someone is theirs: every commit that n
   assert.deepEqual(trusted([c(by), c(by.replace('Add X 1.0.0', 'Update X 1.0.1'))]), {id: 7, login: 'ana'}, 'a maintainer\'s commit names no one and changes nothing');
   assert.ok(trusted([c('x')]).error, 'no line');
   assert.ok(trusted([c(by), c(by.replace('7 ana', '8 bo'))]).error, 'two submitters');
+  assert.deepEqual(trusted([c(by), c(by.replace('7 ana', '7 ana-new'))]), {id: 7, login: 'ana-new'}, 'one account renamed meanwhile: the newest handle');
+  assert.ok(trusted([c(by), c(by.replace('7 ana', '7 an$a'))]).error, 'every line names an account');
   assert.ok(trusted([c(by.replace('7 ana', '7 ana\nAUTHOR=evil'))]).id === 7, 'a line ends where it ends');
   assert.ok(trusted([c(by.replace('7 ana', '0x7 ana'))]).error, 'an id is digits');
   assert.ok(trusted([c(by.replace('7 ana', '7 an$a'))]).error, 'a handle has a login\'s grammar');

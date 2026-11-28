@@ -934,8 +934,8 @@ export function unsigned(commits) {
 
 /**
  * Who submitted a pull request that motionhub's GitHub App opened for them (site/github-app.mjs): the account its
- * commits name in a `Motionhub-Submitted-By: <id> <login>` line. Every commit that carries one names the same account,
- * and at least one does; else {error}. `ref`, when given, is the pull request's head branch and must start with
+ * commits name in a `Motionhub-Submitted-By: <id> <handle>` line. Every commit that carries one names the same account
+ * id, and at least one does; else {error}. Its handle is the newest commit's: a person may change it meanwhile. `ref`, when given, is the pull request's head branch and must start with
  * `share/`: only the app can write to such a branch (the submission ruleset). Omitting it keeps the two-argument
  * call the site already uses. ownership.yml asks only for the app's own pull requests from a share/ branch of this
  * repository, and passes that ref with `--head`.
@@ -951,9 +951,11 @@ export function submitter(commits, app, ref) {
     for (const m of String(c?.commit?.message ?? '').matchAll(/^Motionhub-Submitted-By: (\S+) (\S+)\s*$/gm)) named.push([m[1], m[2]]);
   }
   if (!named.length) return {error: 'no commit says who submitted it (Motionhub-Submitted-By)'};
-  const [id, login] = named[0];
-  if (!/^[1-9]\d{0,15}$/.test(id) || !Number.isSafeInteger(Number(id)) || !GITHUB.test(login)) return {error: `Motionhub-Submitted-By names no account: ${id} ${login}`};
-  if (named.some(([i, l]) => i !== id || l.toLowerCase() !== login.toLowerCase())) return {error: 'its commits name different submitters'};
+  // one account throughout, by its id; its handle may change between commits (a rename while the pull request is open),
+  // and the newest is the one it is judged as
+  const [id] = named[0], login = named.at(-1)[1];
+  if (named.some(([i, l]) => !/^[1-9]\d{0,15}$/.test(i) || !Number.isSafeInteger(Number(i)) || !GITHUB.test(l))) return {error: `Motionhub-Submitted-By names no account: ${named.map((n) => n.join(' ')).join(', ')}`};
+  if (named.some(([i]) => i !== id)) return {error: 'its commits name different submitters'};
   return {id: Number(id), login};
 }
 
