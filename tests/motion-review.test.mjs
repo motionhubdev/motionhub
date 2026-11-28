@@ -1,8 +1,10 @@
 import {test, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {checkLlm, checksReady, eligibleSubmission, publish, validate, validateAnswer} from '../.github/scripts/motion-review.mjs';
 
 const HEAD = 'a'.repeat(40), APP = 'motionhub-dev[bot]';
@@ -89,6 +91,15 @@ test('the LLM configuration is validated without disclosing its credential', () 
       return true;
     });
   }
+});
+
+test('the check-llm command completes successfully through the real CLI dispatcher', () => {
+  const script = fileURLToPath(new URL('../.github/scripts/motion-review.mjs', import.meta.url));
+  const out = execFileSync(process.execPath, [script, 'check-llm'], {encoding: 'utf8', env: {
+    ...process.env,
+    LLM_BASE_URL: 'https://api.moonshot.cn/v1', LLM_API_KEY: 'synthetic-secret', LLM_MODEL: 'kimi-k3.1-pro',
+  }});
+  assert.match(out, /endpoint, credential and model are configured/);
 });
 
 test('only the App\'s same-repository share submissions with motion and account files are eligible', () => {

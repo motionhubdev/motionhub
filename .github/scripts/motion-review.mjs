@@ -213,5 +213,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const [command, ...args] = process.argv.slice(2);
   const run = {prepare, validate, publish, 'check-llm': checkLlm}[command];
   if (!run) fail();
-  run(...args).catch((error) => { console.error(error.message); process.exitCode = 1; });
+  Promise.resolve(run(...args)).catch((error) => { console.error(error.message); process.exitCode = 1; });
 }
