@@ -537,6 +537,27 @@ test('a component\'s params each have a type and a doc; since motion/0.6 a defau
   }
 });
 
+// Exercise every catalogue motion against the 0.5 rules. A 0.7 author needs its field lowered too: changing only
+// `spec` would make an otherwise valid handle author invalid before 0.7, when the same account was named by `github`.
+const manifestAt05 = (manifest) => ({
+  ...manifest,
+  spec: 'motion/0.5',
+  ...(manifest.authors ? {authors: manifest.authors.map((author) => {
+    if (author.handle === undefined) return author;
+    const {handle, ...rest} = author;
+    return {...rest, github: handle};
+  })} : {}),
+});
+
+test('raising a handle author to motion/0.5 converts the author field too', () => {
+  assert.deepEqual(manifestAt05({spec: 'motion/0.7', authors: [{name: 'Ana', handle: 'ana'}]}), {
+    spec: 'motion/0.5', authors: [{name: 'Ana', github: 'ana'}],
+  });
+  assert.deepEqual(manifestAt05({spec: 'motion/0.5', authors: [{name: 'Ana', github: 'ana'}]}), {
+    spec: 'motion/0.5', authors: [{name: 'Ana', github: 'ana'}],
+  }, 'an author already in the old form stays untouched');
+});
+
 test('every motion in the catalogue holds when raised to motion/0.5', () => {
   const root = fileURLToPath(new URL('../motions', import.meta.url));
   const dirs = listMotions(root);
@@ -545,7 +566,7 @@ test('every motion in the catalogue holds when raised to motion/0.5', () => {
     const dir = mkdtempSync(join(tmpdir(), 'motion-raised-'));
     cpSync(join(root, d), dir, {recursive: true});
     const manifest = JSON.parse(readFileSync(join(dir, 'motion.json'), 'utf8'));
-    writeFileSync(join(dir, 'motion.json'), JSON.stringify({...manifest, spec: 'motion/0.5'}));
+    writeFileSync(join(dir, 'motion.json'), JSON.stringify(manifestAt05(manifest)));
     assert.deepEqual(checkMotion(dir, {hub: false}), [], d);
     rmSync(dir, {recursive: true});
   }
