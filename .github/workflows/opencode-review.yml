@@ -1,4 +1,4 @@
-# OpenCode + Kimi reviews motion submissions after the required checks pass. The workflow always comes from main;
+# OpenCode + a repository-configured LLM reviews motion submissions after the required checks pass. The workflow always comes from main;
 # submission files are read as data and never installed or executed. Model inference and GitHub publication have
 # separate credentials. Setup and the approval gates are documented in .github/opencode/README.md.
 name: motion-review
@@ -24,7 +24,7 @@ concurrency:
 jobs:
   context:
     name: motion-review / context
-    if: vars.OPENCODE_ENABLED == 'true' && vars.OPENCODE_MODEL != '' && vars.MOTIONHUB_BOT != ''
+    if: vars.OPENCODE_ENABLED == 'true' && vars.MOTIONHUB_BOT != ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -123,16 +123,18 @@ jobs:
           path: ${{ github.workspace }}
       - name: Install the pinned OpenCode CLI
         run: npm install --global @opencode/cli@2.4.2 --no-audit --no-fund
-      - name: Review with Kimi and no executable submission content
+      - name: Review with the configured LLM and no executable submission content
         env:
-          OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
-          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
-          KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_KEY: ${{ secrets.LLM_KEY }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
           CI: 1
           NO_COLOR: 1
         run: |
+          node .github/scripts/motion-review.mjs check-llm
           cp .github/opencode/motion-review.jsonc opencode.jsonc
-          opencode run --standalone --archived --agent motion-review --model "$OPENCODE_MODEL" "$(cat .github/opencode/prompt.txt)" > "$RUNNER_TEMP/answer.txt"
+          opencode run --standalone --archived --agent motion-review --model configured/review "$(cat .github/opencode/prompt.txt)" > "$RUNNER_TEMP/answer.txt"
           node .github/scripts/motion-review.mjs validate review-context.json "$RUNNER_TEMP/answer.txt" "$RUNNER_TEMP/result.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         id: result

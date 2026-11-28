@@ -1,4 +1,4 @@
-// A motion submission review, with OpenCode + Kimi kept apart from GitHub's write credential. prepare captures a
+// A motion submission review, with OpenCode + a configured LLM kept apart from GitHub's write credential. prepare captures a
 // trusted main revision and a submission's public files as data; OpenCode reads that checkout with no shell, edit,
 // network or subagent tools; publish revalidates the live pull request before leaving one review. Only this program
 // chooses APPROVE versus COMMENT, and it never requests changes or merges.
@@ -27,6 +27,21 @@ const text = (value, max) => {
 };
 const pathOK = (path) => typeof path === 'string' && /^[A-Za-z0-9@._/-]+$/.test(path)
   && !path.startsWith('/') && path.split('/').every((part) => part && part !== '.' && part !== '..');
+
+/** Validate the secret-driven OpenAI-compatible provider without printing its endpoint credential or model. */
+export function checkLlm(env = process.env) {
+  const base = env.LLM_BASE_URL, model = env.LLM_MODEL, key = env.LLM_API_KEY || env.LLM_KEY;
+  if (typeof base !== 'string' || !base.trim() || base !== base.trim() || base.length > 2000) fail('Set LLM_BASE_URL to the OpenAI-compatible API base URL.');
+  if (typeof model !== 'string' || !model.trim() || model !== model.trim() || model.length > 200 || /[\u0000-\u001f\u007f]/.test(model)) fail('Set LLM_MODEL to the model ID the endpoint expects.');
+  if (typeof key !== 'string' || !key.trim() || key !== key.trim() || key.length > 10000 || /[\u0000-\u001f\u007f]/.test(key)) fail('Set LLM_API_KEY (or LLM_KEY) to the endpoint credential.');
+  let url;
+  try { url = new URL(base); } catch { fail('LLM_BASE_URL is not a valid URL.'); }
+  const loopback = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+  if ((url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback)) || url.username || url.password || url.search || url.hash) {
+    fail('LLM_BASE_URL must be an HTTPS origin and path, without credentials, query or fragment (HTTP is allowed only for loopback).');
+  }
+  console.log('The LLM endpoint, credential and model are configured.');
+}
 
 async function github(path, body) {
   const token = process.env.GH_TOKEN;
@@ -151,7 +166,7 @@ const escapeComment = (value) => value.replace(/[\u0000-\u0008\u000b\u000c\u000e
   .replace(/[\\`*_{}[\]()#+!|~]/g, '\\$&').replace(/@/g, '@\u200b');
 
 function reviewBody(context, result, approve, automatic, humanBlock) {
-  const lines = [`${MARKER}${context.head} -->`, '## OpenCode + Kimi motion review', ''];
+  const lines = [`${MARKER}${context.head} -->`, '## OpenCode motion review', ''];
   lines.push(approve
     ? '**Approved automatically.** The required checks passed, the submitted images were inspected, and no blocking issue or human-review request was reported. This review does not merge the pull request.'
     : '**Reviewer notes; no automatic approval.** A maintainer still decides.');
@@ -196,7 +211,7 @@ export async function publish(contextPath, resultPath) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [command, ...args] = process.argv.slice(2);
-  const run = {prepare, validate, publish}[command];
+  const run = {prepare, validate, publish, 'check-llm': checkLlm}[command];
   if (!run) fail();
   run(...args).catch((error) => { console.error(error.message); process.exitCode = 1; });
 }

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {checksReady, eligibleSubmission, publish, validate, validateAnswer} from '../.github/scripts/motion-review.mjs';
+import {checkLlm, checksReady, eligibleSubmission, publish, validate, validateAnswer} from '../.github/scripts/motion-review.mjs';
 
 const HEAD = 'a'.repeat(40), APP = 'motionhub-dev[bot]';
 let root, originalFetch, saved;
-const variables = ['GH_TOKEN', 'GITHUB_REPOSITORY', 'MOTIONHUB_BOT', 'OPENCODE_AUTO_APPROVE'];
+const variables = ['GH_TOKEN', 'GITHUB_REPOSITORY', 'MOTIONHUB_BOT', 'OPENCODE_AUTO_APPROVE', 'LLM_BASE_URL', 'LLM_API_KEY', 'LLM_KEY', 'LLM_MODEL'];
 const context = () => ({
   schema: 1, repo: 'owner/repo', number: 121, head: HEAD, title: 'Add Ledger', body: '', firstTime: false,
   files: [{path: 'motions/@ana/ledger/motion.json', status: 'added'}], submitter: {id: 42, login: 'ana'},
@@ -57,6 +57,36 @@ function mockGithub({pr = submission(), runs = green(), reviews = []} = {}) {
   };
   return calls;
 }
+
+test('OpenCode reads a generic OpenAI-compatible provider from LLM secrets', () => {
+  const config = JSON.parse(readFileSync(new URL('../.github/opencode/motion-review.jsonc', import.meta.url), 'utf8'));
+  assert.equal(config.model, 'configured/review');
+  assert.equal(config.providers.configured.package, '@opencode/ai/providers/openai-compatible');
+  assert.deepEqual(config.providers.configured.env, ['LLM_API_KEY', 'LLM_KEY']);
+  assert.equal(config.providers.configured.settings.baseURL, '{env:LLM_BASE_URL}');
+  assert.equal(config.providers.configured.models.review.modelID, '{env:LLM_MODEL}');
+});
+
+test('the LLM configuration is validated without disclosing its credential', () => {
+  const valid = {LLM_BASE_URL: 'https://api.moonshot.cn/v1', LLM_API_KEY: 'synthetic-secret', LLM_MODEL: 'kimi-k3.1-pro'};
+  assert.doesNotThrow(() => checkLlm(valid));
+  assert.doesNotThrow(() => checkLlm({...valid, LLM_API_KEY: '', LLM_KEY: 'alias-secret'}));
+  assert.doesNotThrow(() => checkLlm({...valid, LLM_BASE_URL: 'http://127.0.0.1:11434/v1'}), 'loopback HTTP is allowed for a local model');
+  for (const invalid of [
+    {...valid, LLM_BASE_URL: ''},
+    {...valid, LLM_BASE_URL: 'http://llm.example.com/v1'},
+    {...valid, LLM_BASE_URL: 'https://user:secret@llm.example.com/v1'},
+    {...valid, LLM_BASE_URL: 'https://llm.example.com/v1?api_key=secret'},
+    {...valid, LLM_MODEL: ''},
+    {...valid, LLM_MODEL: 'model\nwith-a-newline'},
+    {...valid, LLM_API_KEY: '', LLM_KEY: ''},
+  ]) {
+    assert.throws(() => checkLlm(invalid), (error) => {
+      assert.ok(!error.message.includes('synthetic-secret') && !error.message.includes('alias-secret'));
+      return true;
+    });
+  }
+});
 
 test('only the App\'s same-repository share submissions with motion and account files are eligible', () => {
   const files = context().files;

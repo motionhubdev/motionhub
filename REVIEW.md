@@ -1,6 +1,6 @@
 # Reviewing a pull request
 
-What the reviewer agent ([CONTRIBUTING.md](CONTRIBUTING.md), "Review") looks for. It leaves notes, or approves only when every gate in [the OpenCode + Kimi review configuration](.github/opencode/README.md) holds. It never requests changes or merges, and a maintainer decides what lands.
+What the reviewer agent ([CONTRIBUTING.md](CONTRIBUTING.md), "Review") looks for. It leaves notes, or approves only when every gate in [the OpenCode review configuration](.github/opencode/README.md) holds. It never requests changes or merges, and a maintainer decides what lands.
 
 The checks (`tools/check.mjs`, run on every pull request) already enforce the format, the licences, sizes, scope and authorship, sign-off and the code rules. The review does not repeat what they report. It looks at what a program cannot judge.
 

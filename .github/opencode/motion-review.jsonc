@@ -1,7 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "{env:OPENCODE_MODEL}",
+  "model": "configured/review",
   "default_agent": "motion-review",
+  "providers": {
+    "configured": {
+      "name": "Repository-configured LLM",
+      "env": ["LLM_API_KEY", "LLM_KEY"],
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "{env:LLM_BASE_URL}"
+      },
+      "models": {
+        "review": {
+          "modelID": "{env:LLM_MODEL}",
+          "name": "Repository-configured review model"
+        }
+      }
+    }
+  },
   "update": "disable",
   "snapshots": false,
   "instructions": ["REVIEW.md"],

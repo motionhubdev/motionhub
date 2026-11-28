@@ -1,16 +1,24 @@
-# OpenCode + Kimi motion review
+# OpenCode + LLM motion review
 
-`../workflows/opencode-review.yml` reviews motion submissions opened by motionhub's GitHub App. It is not a general pull-request reviewer and never runs a submission's code.
+`../workflows/opencode-review.yml` reviews motion submissions opened by motionhub's GitHub App. It is not a general pull-request reviewer and never runs a submission's code. The model is an OpenAI-compatible endpoint configured entirely with repository secrets; no provider or model is hardcoded.
 
 ## Repository configuration
 
-1. Set the Actions variable `OPENCODE_ENABLED` to `true`.
-2. Set `OPENCODE_MODEL` to a model from OpenCode's [provider catalogue](https://opencode.ai/docs/providers/). For Moonshot's China endpoint, for example: `moonshotai-cn/kimi-k3.1-pro`. For the global endpoint: `moonshotai/kimi-k3.1-pro`.
-3. Add the matching Actions secret:
-   - Moonshot API: `MOONSHOT_API_KEY`.
-   - Kimi for Coding: `KIMI_API_KEY`, with a model such as `kimi-code-plan-cn/kimi-for-coding` (or the corresponding global provider).
-4. Keep `MOTIONHUB_BOT` set to the exact login of motionhub's GitHub App, as `ownership.yml` already requires.
-5. Initially leave `OPENCODE_AUTO_APPROVE` unset or `false`: the agent then leaves reviewer notes only. Set it to `true` only after the comment-only workflow has been observed on real submissions.
+Set these **Actions secrets**:
+
+| Secret | Meaning | Example |
+| --- | --- | --- |
+| `LLM_BASE_URL` | The OpenAI-compatible API base URL, including its version path when required. HTTPS is required except for loopback testing. Do not include credentials, a query or a fragment. | `https://api.moonshot.cn/v1` |
+| `LLM_API_KEY` | The credential for that endpoint. `LLM_KEY` is accepted as an alias when `LLM_API_KEY` is unset. | The provider's API key |
+| `LLM_MODEL` | The exact model ID the endpoint expects, not an OpenCode provider/model alias. | `kimi-k3.1-pro` |
+
+Other Moonshot examples are `https://api.moonshot.ai/v1` globally and `https://api.kimi.com/coding/v1` with `kimi-for-coding` for Kimi for Coding. Any service compatible with OpenAI's chat API can be used instead. A text-only model can leave notes, but automatic approval requires a model capable of actually inspecting the submitted images.
+
+Then:
+
+1. Set the Actions variable `OPENCODE_ENABLED` to `true`. Missing or invalid LLM secrets fail the inference job without exposing their values.
+2. Keep `MOTIONHUB_BOT` set to the exact login of motionhub's GitHub App, as `ownership.yml` already requires.
+3. Initially leave `OPENCODE_AUTO_APPROVE` unset or `false`: the agent then leaves reviewer notes only. Set it to `true` only after the comment-only workflow has been observed on real submissions.
 
 No OpenCode GitHub App installation or OIDC permission is needed. The workflow installs the pinned `@opencode/cli` release and uses the repository's own limited `GITHUB_TOKEN` only in the final publication job.
 
@@ -33,4 +41,4 @@ The context job has read-only repository, check and pull-request access. The inf
 
 The checked-out submission is data. OpenCode's configuration denies shell, edit, external-directory, web, skill and subagent access; it allows only local reads, globs and grep. The model returns bounded JSON observations. `motion-review.mjs` validates them and alone chooses `COMMENT` or `APPROVE`; model output cannot select a GitHub event, mention users, or inject trusted markup.
 
-See [OpenCode's CI documentation](https://opencode.ai/docs/cli/commands/#ci), [agent permissions](https://opencode.ai/docs/permissions/) and [Kimi provider identifiers](https://models.dev/) for the upstream configuration these files use.
+See [OpenCode's CI documentation](https://opencode.ai/docs/cli/commands/#ci), [custom OpenAI-compatible providers](https://opencode.ai/docs/providers/#custom) and [agent permissions](https://opencode.ai/docs/permissions/) for the upstream configuration these files use.

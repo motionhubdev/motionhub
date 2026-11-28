@@ -109,7 +109,7 @@ A tool may add rules of its own for its directory.
 ## Review
 
 1. The checks run on every pull request and post the result: `check` (the format, the tests and the builds) and `ownership` (your account, your motion's authors, the sign-off), which is always judged by the main branch's rules, whatever the pull request changes.
-2. When enabled, once both are green, the OpenCode + Kimi reviewer reads the motion for originality, safety and whether `MOTION.md` lets someone make a film in it, following [REVIEW.md](REVIEW.md). It leaves one review with its findings. For an established submitter it can approve only when every content, image and security gate passes; its setup and limits are in [.github/opencode/README.md](.github/opencode/README.md). It never runs the submission's code, requests changes or merges.
+2. When enabled, once both are green, the OpenCode + configured LLM reviewer reads the motion for originality, safety and whether `MOTION.md` lets someone make a film in it, following [REVIEW.md](REVIEW.md). It leaves one review with its findings. For an established submitter it can approve only when every content, image and security gate passes; its setup and limits are in [.github/opencode/README.md](.github/opencode/README.md). It never runs the submission's code, requests changes or merges.
 3. A maintainer merges. A first-time contributor's pull request always waits for a person, and branch protection and code-owner review still apply after an agent approval.
 
 ## Changing a published motion
