@@ -65,6 +65,9 @@ test('OpenCode reads a generic OpenAI-compatible provider from LLM secrets', () 
   assert.deepEqual(config.providers.configured.env, ['LLM_API_KEY', 'LLM_KEY']);
   assert.equal(config.providers.configured.settings.baseURL, '{env:LLM_BASE_URL}');
   assert.equal(config.providers.configured.models.review.modelID, '{env:LLM_MODEL}');
+  assert.match(config.agents['motion-review'].system, /Always write every piece of review prose in English/);
+  assert.match(readFileSync(new URL('../.github/opencode/prompt.txt', import.meta.url), 'utf8'), /Always write all review prose in English/);
+  assert.match(readFileSync(new URL('../REVIEW.md', import.meta.url), 'utf8'), /Always write every part of it in English/);
 });
 
 test('the LLM configuration is validated without disclosing its credential', () => {
