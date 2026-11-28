@@ -133,6 +133,7 @@ By hand:
 npx @motionhub/cli init <slug> --handle <you>   # ./motions/<slug>/ with every required file to fill in, scoped to you
 npx @motionhub/cli upload motions/<slug>        # keep it for yourself alone, at once, with no review
 npx @motionhub/cli publish motions/<slug>       # for everyone: the checks, then you certify the DCO (or open the link) to open the pull request
+npx @motionhub/cli status                       # your submissions, checks, reviewer feedback and next step
 ```
 
 No git, gh or GitHub token is needed: sign in to motionhub.dev with `npx @motionhub/cli login`, or open the link `publish` prints. motionhub's GitHub App opens the pull request under your name.

@@ -95,6 +95,19 @@ A motion through the checks its pull request will run, against what is published
 
 This is the only way to submit a motion. `--pr` and `--github` are refused: `--pr` used to fork the repository with your own GitHub token, and those pull requests fail the ownership check, which does not check out fork code. To run the checks as an account without uploading, use `check --author`. [Share a motion](../CONTRIBUTING.md) explains what happens next. See [CHANGELOG.md](../CHANGELOG.md).
 
+## status
+
+```sh
+npx @motionhub/cli status
+npx @motionhub/cli status @<handle>/<slug>
+npx @motionhub/cli status --pr <number>
+npx @motionhub/cli status [--pr <number>] --json
+```
+
+Your submissions and their progress, signed in with `login`: shares waiting for you to submit, submitted and published versions, open pull requests, each required check (`check` and `ownership`), the reviewer workflow when available, the latest review decision, concrete reviewer feedback and what happens next. With a motion id it selects your newest share for that motion; with `--pr` it reads one of your pull requests, including after it was closed or merged. `--json` returns the same records for an agent or another tool.
+
+The same information is on [your page](https://motionhub.dev/you/) under **In review** and **Shared**. The command line's credential selects your own motionhub submission records; check runs and review comments come from the public GitHub pull request. No GitHub token is needed.
+
 ## login, whoami, logout
 
 ```sh

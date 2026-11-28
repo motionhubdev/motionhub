@@ -1,6 +1,6 @@
 # Reviewing a pull request
 
-What the reviewer agent ([CONTRIBUTING.md](CONTRIBUTING.md), "Review") looks for. It advises; it never approves, requests changes or merges, and a maintainer decides.
+What the reviewer agent ([CONTRIBUTING.md](CONTRIBUTING.md), "Review") looks for. It leaves notes, or approves only when every gate in [the OpenCode + Kimi review configuration](.github/opencode/README.md) holds. It never requests changes or merges, and a maintainer decides what lands.
 
 The checks (`tools/check.mjs`, run on every pull request) already enforce the format, the licences, sizes, scope and authorship, sign-off and the code rules. The review does not repeat what they report. It looks at what a program cannot judge.
 
@@ -31,4 +31,6 @@ A motion's `MOTION.md` is written to be followed by agents, so a pull request ma
 
 ## How to report
 
-Leave the notes as comments on the pull request. Advise; do not approve, request changes or merge. Say when a picture, or the rest of a file, needs a person to look at it. Never claim to have run tests. Be kind and concrete; use the language of the request, or English when unsure. The review itself runs outside this repository.
+Leave one review on the pull request, in English. Report blocking findings separately from suggestions. Never request changes or merge. Never claim to have run tests or rendered a reel: the required CI jobs supply their own results. Be kind and concrete.
+
+An automatic approval additionally requires a clean result, every submitted poster and component preview actually inspected, no human-review request or outstanding maintainer request for changes, both required checks green on the exact head, an established submitter and the repository's separate auto-approval switch. A first submission, an inaccessible picture, uncertainty or anything that needs a person stays comment-only. The full security boundaries and setup are in [.github/opencode/README.md](.github/opencode/README.md).

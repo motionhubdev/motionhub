@@ -10,12 +10,14 @@
 //   motionhub tokens [MOTION.md] [--out <file>]
 //   motionhub upload <dir> | list | delete <id>[@<version>]
 //   motionhub publish <dir> [--wait]
+//   motionhub status [<@scope/slug>] [--pr <number>] [--json]
 
 import {artifactCli} from '../tools/artifact-cli.mjs';
 import {readFileSync} from 'node:fs';
 import {main as check} from '../tools/check.mjs';
 import {main as hub} from '../tools/hub.mjs';
 import {privateCli} from '../tools/private-cli.mjs';
+import {statusCli} from '../tools/status-cli.mjs';
 
 const USAGE = `usage: motionhub check [dir or MOTION.md ...] [--format-only] [--author <handle>] [--author-id <account-id>] [--was <motion.json>]
        motionhub search [words ...]
@@ -26,6 +28,7 @@ const USAGE = `usage: motionhub check [dir or MOTION.md ...] [--format-only] [--
        motionhub tokens [MOTION.md] [--out <file>]
        motionhub upload <dir> | motionhub list | motionhub delete <id>[@<version>]
        motionhub publish <dir> [--wait]
+       motionhub status [<@scope/slug>] [--pr <number>] [--json]
 
 check   a motion against the motion format (https://github.com/motionhubdev/motionhub/blob/main/SPEC.md) and motionhub's
         rules; with no directory, the current directory when it is a motion, else every motion under ./motions/
@@ -45,7 +48,9 @@ publish a motion for everyone: the checks its pull request will run, against wha
         motionhub.dev and reviewed. Signed in with motionhub login, at a terminal, it lists the files and asks you to
         certify the DCO, then opens the pull request at once; otherwise open the link it prints, sign in and type its
         code. motionhub's GitHub App opens the pull request from a share/ branch (no git, gh or token needed; --wait
-        waits for it). This is the only way to submit; --pr and a fork are refused`;
+        waits for it). This is the only way to submit; --pr and a fork are refused
+status  your submissions and their review progress: required checks, reviewer feedback and what happens next. With an
+        id, the newest share for that motion; with --pr, one pull request including after it closes; --json for tools`;
 
 const [command, ...args] = process.argv.slice(2);
 try {
@@ -53,6 +58,7 @@ try {
   else if (['login', 'whoami', 'logout', 'artifact'].includes(command)) await artifactCli(command, args);
   else if (['search', 'get', 'init', 'tokens', 'publish'].includes(command)) process.exitCode = await hub(command, args);
   else if (['upload', 'list', 'delete'].includes(command)) process.exitCode = await privateCli(command, args);
+  else if (command === 'status') process.exitCode = await statusCli(args);
   // renamed in 0.11.0: said once, never run under the old name
   else if (command === 'share' || command === 'private') { console.error(`motionhub ${command} is now ${command === 'share' ? 'motionhub publish <dir>' : 'motionhub upload <dir>, motionhub list and motionhub delete <id>'}`); process.exitCode = 2; }
   else if (command === '--version' || command === '-v') console.log(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);

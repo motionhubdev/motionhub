@@ -22,7 +22,7 @@ const WORKFLOW = /^\.github\/(workflows\/check\.yml$|actions\/|scripts\/changed\
 const PLAYERS_UNREACHED = [
   /^[^/]+\.md$/, /^(LICENSE|\.gitignore|\.gitleaksignore|package\.json)$/,
   /^docs\//, /^accounts\//, /^catalogs\.json$/, /^skills\//, /^bin\//, /^tests\//, /^brand\//,
-  /^tools\/(hub|pack|artifact-cli|private-cli|npm-package|release|docs|brand)\.mjs$/,
+  /^tools\/(hub|pack|artifact-cli|private-cli|status-cli|npm-package|release|docs|brand)\.mjs$/,
   /^packages\/(remotion|hyperframes)\//,
   /^\.github\/(?!workflows\/check\.yml$|actions\/|scripts\/changed\.mjs$)/,
 ];
