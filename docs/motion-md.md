@@ -126,7 +126,7 @@ The [whole file](https://motionhub.dev/m/@iamsuosi/lab-notebook/MOTION.md) goes 
 To make a film in a look from motionhub, follow [Use a motion](use.md). To publish a look of your own, ask your agent from the project whose look you want to share. It writes the whole directory that motionhub needs:
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 [Share a motion](../CONTRIBUTING.md) has the rest.

@@ -15,7 +15,7 @@ function jpeg(width, height) {
 }
 
 const color = (hex) => ({colorSpace: 'srgb', components: [0.5, 0.5, 0.5], hex});
-// every motion on the hub has a scope (its author's GitHub login); UNSCOPED is the format's plainest motion
+// every motion on the hub has a scope (its author's handle); UNSCOPED is the format's plainest motion
 // every motion on the hub says what it is for (fit, since motion/0.4); BASE is a motion of an earlier version, without it
 const BASE = {
   spec: 'motion/0.2', scope: 'tester', slug: 'test-motion', version: '1.0.0',
@@ -80,6 +80,18 @@ test('in the catalogue the directory is the id; a project\'s copy may be named o
   assert.ok(codes(motion({dir: 'motions/@tester/other-name'})).includes('hub.slug'));
   assert.deepEqual(codes(motion({dir: 'motions/@tester/test-motion'})).filter((c) => c.endsWith('slug')), []);
   assert.deepEqual(codes(motion({dir: 'project/motion'})).filter((c) => c.endsWith('slug')), []);
+});
+
+test('since motion/0.7 an author is named by a handle, before it by a GitHub username', () => {
+  const at = (spec, authors) => codes(motion({manifest: {...MANIFEST, spec, authors}}), {hub: false});
+  assert.deepEqual(at('motion/0.7', [{name: 'Tester', handle: 'tester'}]), []);
+  assert.ok(at('motion/0.7', [{name: 'Tester', github: 'tester'}]).includes('manifest.authors'), 'a 0.7 author has no github');
+  assert.ok(at('motion/0.7', [{name: 'Tester', handle: 'Tester'}]).includes('manifest.authors'), 'a handle is lowercase');
+  assert.ok(at('motion/0.6', [{name: 'Tester', handle: 'tester'}]).includes('manifest.authors'), 'handle is a member since 0.7');
+  assert.deepEqual(at('motion/0.6', [{name: 'Tester', github: 'Tester'}]), [], 'a published version keeps its meaning');
+  const handled = {...MANIFEST, spec: 'motion/0.7', authors: [{name: 'Tester', handle: 'tester'}]};
+  assert.deepEqual(codes(motion({manifest: handled}), {author: 'tester', authorId: 7, accounts: new Map([['tester', 7]])}), [], 'ownership reads the handle');
+  assert.ok(codes(motion({manifest: handled}), {author: 'bo', authorId: 8, accounts: new Map([['tester', 7], ['bo', 8]])}).includes('hub.author'));
 });
 
 test('the manifest\'s members, slug, version, localized strings and licence', () => {
@@ -288,34 +300,43 @@ test('who owns a scope and a motion is decided by the GitHub account\'s id, not 
   assert.deepEqual(codes(motion({manifest: next}), {author: 'tester', was}), [], 'with no accounts to look up (a motion checked outside this repository) the login decides');
 });
 
-test('in this repository every login a motion names is recorded', () => {
+test('in this repository every handle a motion names is recorded', () => {
   const unrecorded = checkMotion(motion(), {author: 'tester', authorId: 7, accounts: new Map()});
   assert.deepEqual(unrecorded.map((i) => i.code), ['hub.author', 'hub.scope', 'hub.account']);
-  assert.match(unrecorded.find(i => i.code === 'hub.account').message, /accounts\/tester\.json with \{"login": "tester", "id": 7\}/, 'it says what to add, with the opener\'s own id');
+  assert.match(unrecorded.find(i => i.code === 'hub.account').message, /share the motion through motionhub\.dev/, 'it says the pull request motionhub.dev opens records it');
+  assert.ok(!checkMotion(motion(), {accounts: new Map(), shared: true}).some((i) => i.code === 'hub.account'), 'shared, an unrecorded handle is the submitter\'s, recorded with its pull request');
+  const renamed = {...MANIFEST, version: '2.0.0', authors: [{name: 'Tess', github: 'tess'}]};
+  const at = (accounts) => codes(motion({manifest: renamed}), {was: MANIFEST, accounts, shared: true}).filter((c) => c === 'hub.author');
+  assert.deepEqual(at(new Map([['tester', 7]])), [], 'shared, a rename to a handle not recorded yet is judged by motionhub.dev, which knows the account');
+  assert.deepEqual(at(new Map([['tester', 7], ['tess', 8]])), ['hub.author'], 'a recorded handle of another account is refused here already');
   const coauthor = {...MANIFEST, authors: [...MANIFEST.authors, {name: 'Bo', github: 'Bo'}]};
   assert.deepEqual(codes(motion({manifest: coauthor}), {author: 'tester', authorId: 7, accounts: new Map([['tester', 7]])}), ['hub.author', 'hub.account'], 'multiple authors are refused even before account validation');
   assert.deepEqual(codes(motion({manifest: coauthor}), {author: 'tester', authorId: 7, accounts: new Map([['tester', 7], ['bo', 8]])}), ['hub.author']);
 });
 
-test('an account is recorded once and never changes, and an added one is what GitHub says', async () => {
+test('an account is recorded once and never changes, and only a submission records one: its submitter\'s', () => {
   const dir = (records) => {
     const d = mkdtempSync(join(tmpdir(), 'accounts-'));
     for (const [name, content] of Object.entries(records)) writeFileSync(join(d, name), typeof content === 'string' ? content : JSON.stringify(content));
     return d;
   };
   const before = dir({'tester.json': {login: 'tester', id: 7}});
-  const lookup = async (login) => ({tester: 99, tess: 7, ana: 12})[login];
-  const at = async (records) => (await checkAccounts(dir(records), {was: before, lookup})).map((i) => `${i.at} ${i.code}`);
-  assert.deepEqual(await at({'tester.json': {login: 'tester', id: 7}, 'tess.json': {login: 'tess', id: 7}}), [], 'a rename is a new record with the same id');
-  assert.deepEqual(await at({'tester.json': {login: 'tester', id: 99}}), ['tester.json hub.accounts'], 'a record is never changed, even to what GitHub says now');
-  assert.deepEqual(await at({}), ['tester.json hub.accounts'], 'nor removed');
-  assert.deepEqual(await at({'tester.json': {login: 'tester', id: 7}, 'ana.json': {login: 'ana', id: 13}}), ['ana.json hub.accounts'], 'an added record names the id GitHub gives that login');
-  assert.deepEqual(await at({'tester.json': {login: 'tester', id: 7}, 'nobody.json': {login: 'nobody', id: 5}}), ['nobody.json hub.accounts'], 'one GitHub cannot confirm is not taken');
+  const issued = 4503599627370497; // an id motionhub.dev issues, above any GitHub gives
+  const at = (records, by) => checkAccounts(dir(records), {was: before, by}).map((i) => `${i.at} ${i.code}`);
+  const tester = {'tester.json': {login: 'tester', id: 7}};
+  assert.deepEqual(at({...tester, 'tess.json': {login: 'tess', id: 7}}, {id: 7, login: 'Tess'}), [], 'a rename is a new record with the same id, by its account');
+  assert.deepEqual(at({...tester, 'ana.json': {login: 'ana', id: issued}}, {id: issued, login: 'ana'}), [], 'an account motionhub.dev issued is recorded by its own submission');
+  assert.deepEqual(at({'tester.json': {login: 'tester', id: 99}}, {id: 99, login: 'tester'}), ['tester.json hub.accounts'], 'a record is never changed');
+  assert.deepEqual(at({}), ['tester.json hub.accounts'], 'nor removed');
+  assert.deepEqual(at({...tester, 'ana.json': {login: 'ana', id: 12}}), ['ana.json hub.accounts'], 'a pull request opened by hand records no account');
+  assert.deepEqual(at({...tester, 'ana.json': {login: 'ana', id: 13}}, {id: 12, login: 'ana'}), ['ana.json hub.accounts'], 'a submission records only its submitter\'s id');
+  assert.deepEqual(at({...tester, 'bo.json': {login: 'bo', id: 12}}, {id: 12, login: 'ana'}), ['bo.json hub.accounts'], 'and handle');
+  assert.deepEqual(at({...tester, 'ana.json': {login: 'ana', id: 12}, 'anna.json': {login: 'anna', id: 12}}, {id: 12, login: 'ana'}), ['anna.json hub.accounts'], 'and one record');
   for (const bad of [{'Ana.json': {login: 'Ana', id: 12}}, {'ana.json': {login: 'ana', id: '12'}}, {'ana.json': {login: 'bo', id: 12}}, {'ana.json': {login: 'ana', id: 12, name: 'Ana'}}, {'ana.json': '{'}, {'ana.txt': 'x'}]) {
-    assert.ok((await checkAccounts(dir(bad))).some((i) => i.code === 'hub.accounts'), JSON.stringify(bad));
+    assert.ok(checkAccounts(dir(bad)).some((i) => i.code === 'hub.accounts'), JSON.stringify(bad));
   }
   assert.deepEqual([...readAccounts(dir({'tess.json': {login: 'tess', id: 7}, 'ana.json': '{'}))], [['tess', 7]]);
-  assert.deepEqual(await checkAccounts(join(tmpdir(), 'no-such-accounts')), []);
+  assert.deepEqual(checkAccounts(join(tmpdir(), 'no-such-accounts')), []);
 });
 
 test('this repository records every account its motions name', async () => {
@@ -613,9 +634,13 @@ test('a pull request motionhub opened for someone is theirs: every commit that n
   assert.deepEqual(trusted([c(by), c(by.replace('Add X 1.0.0', 'Update X 1.0.1'))]), {id: 7, login: 'ana'}, 'a maintainer\'s commit names no one and changes nothing');
   assert.ok(trusted([c('x')]).error, 'no line');
   assert.ok(trusted([c(by), c(by.replace('7 ana', '8 bo'))]).error, 'two submitters');
+  assert.deepEqual(trusted([c(by), c(by.replace('7 ana', '7 ana-new'))]), {id: 7, login: 'ana-new'}, 'one account renamed meanwhile: the newest handle');
+  assert.ok(trusted([c(by), c(by.replace('7 ana', '7 an$a'))]).error, 'every line names an account');
   assert.ok(trusted([c(by.replace('7 ana', '7 ana\nAUTHOR=evil'))]).id === 7, 'a line ends where it ends');
   assert.ok(trusted([c(by.replace('7 ana', '0x7 ana'))]).error, 'an id is digits');
-  assert.ok(trusted([c(by.replace('7 ana', '7 an$a'))]).error, 'a login is a GitHub login');
+  assert.ok(trusted([c(by.replace('7 ana', '7 an$a'))]).error, 'a handle has a login\'s grammar');
+  assert.deepEqual(trusted([c(by.replace('7 ana', '4503599627370497 ana'))]), {id: 4503599627370497, login: 'ana'}, 'an id motionhub.dev issued, above GitHub\'s');
+  assert.ok(trusted([c(by.replace('7 ana', '9007199254740993 ana'))]).error, 'an id is a safe integer');
   // GitHub commits for the app through its API (web-flow); the app is still the author, and GitHub signs it
   assert.deepEqual(trusted([c(by, 'web-flow')]), {id: 7, login: 'ana'}, 'committed by GitHub for the app');
   assert.ok(trusted([c(by, 'web-flow', 'eve')]).error, 'committed by GitHub for someone else');

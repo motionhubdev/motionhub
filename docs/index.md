@@ -29,7 +29,7 @@ then ask:
 and, to publish a look of your own:
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 [Use a motion](use.md) has every way: the skill, the command line, [Remotion](remotion.md), [HyperFrames](hyperframes.md) and any other engine.

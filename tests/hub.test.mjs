@@ -8,7 +8,7 @@ import {createServer} from 'node:http';
 import {existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {LOCK, getMotion, main, motionTokens, packedSha256, projectMotion, readLock, scaffold, search, shareLink, unpack} from '../tools/hub.mjs';
+import {LOCK, certifyHere, getMotion, main, motionTokens, packedSha256, projectMotion, readLock, scaffold, search, shareLink, unpack} from '../tools/hub.mjs';
 import {tgz} from '../tools/pack.mjs';
 import {SPEC, checkMotion} from '../tools/check.mjs';
 import {resolveTokens, tokenVariables} from '../packages/runtime/tokens.js';
@@ -165,14 +165,60 @@ test('a lock is refused when it names a place outside motions/ or a package with
 
 test('init starts a motion of the project\'s own in motions/<slug>/', async () => {
   const project = mkdtempSync(join(tmpdir(), 'project-'));
-  const r = await inDir(project, 'init', ['my-look', '--github', 'ana']);
+  const r = await inDir(project, 'init', ['my-look', '--handle', 'ana']);
   assert.equal(r.status, 0);
   assert.ok(existsSync(join(project, 'motions/my-look/motion.json')));
-  assert.match(r.out, /motionhub share motions\/my-look/);
+  assert.match(r.out, /motionhub upload motions\/my-look to keep it for yourself, or motionhub publish motions\/my-look/);
+});
+
+test('init needs no network: signed in but with motionhub.dev out of reach, it starts the motion and says to pass --handle', () => {
+  const home = mkdtempSync(join(tmpdir(), 'home-')), project = mkdtempSync(join(tmpdir(), 'project-'));
+  // a kept credential for an origin nothing answers at
+  mkdirSync(join(home, '.motionhub'));
+  writeFileSync(join(home, '.motionhub', 'artifact-token-127.0.0.1%3A9'), 'kept-token');
+  const bin = new URL('../bin/motionhub.mjs', import.meta.url).pathname;
+  const out = execFileSync(process.execPath, [bin, 'init', 'my-look'], {cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, HOME: home, USERPROFILE: home, MOTIONHUB_ARTIFACT_ORIGIN: 'https://127.0.0.1:9'}});
+  assert.match(out, /your-handle\/my-look/);
+  assert.equal(JSON.parse(readFileSync(join(project, 'motions/my-look/motion.json'), 'utf8')).scope, 'your-handle');
 });
 
 /** The smallest JPEG the checker reads: its size, and nothing to decode. */
 const jpeg = (w, h) => Buffer.concat([Buffer.from([0xff, 0xd8]), Buffer.from([0xff, 0xc0, 0x00, 0x11, 0x08, h >> 8, h & 255, w >> 8, w & 255, 0x03, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1]), Buffer.from([0xff, 0xd9])]);
+
+test('signed in, a person at a terminal certifies the DCO and the pull request opens from here; else the link', async () => {
+  const dir = join(mkdtempSync(join(tmpdir(), 'share-')), 'motions', 'plain-ink');
+  for (const [path, data] of scaffold('plain-ink', {login: 'ana', name: 'Ana'})) { mkdirSync(join(dir, path, '..'), {recursive: true}); writeFileSync(join(dir, path), data); }
+  writeFileSync(join(dir, 'poster.jpg'), jpeg(1920, 1080));
+  const submitted = [];
+  let answer = {status: 200, body: {pr: 9, prUrl: 'https://github.com/motionhubdev/motionhub/pull/9'}};
+  const server = createServer((req, res) => {
+    let text = '';
+    req.on('data', (c) => { text += c; });
+    req.on('end', () => {
+      if (req.url === '/api/motions.json') res.end(JSON.stringify({spec: 'motion/0.1', motions: []}));
+      else if (req.url === '/api/accounts.json') res.end(JSON.stringify({}));
+      else if (req.method === 'POST' && req.url === '/api/submissions') res.end(JSON.stringify({id: 's1', url: 'https://motionhub.dev/share/s1', code: 'MAPLE-07', poll: 'p', expires: 'tomorrow'}));
+      else if (req.method === 'POST' && req.url === '/api/submissions/s1/submit') { submitted.push({auth: req.headers.authorization, body: JSON.parse(text)}); res.statusCode = answer.status; res.end(JSON.stringify(answer.body)); }
+      else { res.statusCode = 404; res.end(); }
+    });
+  });
+  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const asked = [];
+  const yes = async (what) => { asked.push(what); return true; };
+  try {
+    assert.equal(await shareLink(dir, {token: 'kept', certify: yes}, base), 'The pull request is open: https://github.com/motionhubdev/motionhub/pull/9');
+    assert.deepEqual(submitted, [{auth: 'Bearer kept', body: {code: 'MAPLE-07', mine: true, dco: true}}]);
+    assert.equal(asked[0].id, '@ana/plain-ink');
+    assert.ok(asked[0].files.includes('motion.json'), 'the person is shown every file before certifying');
+    assert.match(await shareLink(dir, {token: 'kept', certify: async () => false}, base), /Open https:\/\/motionhub\.dev\/share\/s1[\s\S]*MAPLE-07/, 'not certified: the link');
+    assert.match(await shareLink(dir, {certify: yes}, base), /share\/s1/, 'not signed in: the link');
+    assert.equal(submitted.length, 1);
+    assert.equal(await certifyHere({id: '@ana/plain-ink', version: '1.0.0', files: []}), false, 'with no terminal (an agent, a pipe) no one is asked, and nothing is certified');
+    answer = {status: 403, body: {error: 'this command line signed in before it could submit a share: run motionhub login again, or open the link', login: true}};
+    assert.match(await shareLink(dir, {token: 'old', certify: yes}, base), /It was not submitted from here: this command line signed in before[\s\S]*share\/s1/, 'refused: says why, and gives the link');
+  } finally { server.close(); }
+});
 
 test('a new motion starts as every required file but the poster, and share uploads it only above what is published', async () => {
   // where init puts it (motions/<slug>/ in a project): judged by the hub's accounts, but not as if it were the catalogue
@@ -247,14 +293,14 @@ test('the skill names the format\'s version, and looks for a project\'s motion w
   assert.ok(skill.includes('Never invent a number'));
 });
 
-test('share refuses --pr and --github, and the help no longer offers a fork', async () => {
+test('publish refuses --pr and --github, and the help no longer offers a fork', async () => {
   const help = execFileSync(process.execPath, [BIN, '--help'], {encoding: 'utf8'});
   assert.doesNotMatch(help, /share <dir> --pr/);
   assert.match(help, /--pr and a fork are refused/);
   assert.match(help, /share\/ branch/);
   const project = mkdtempSync(join(tmpdir(), 'share-'));
   for (const args of [['motions/plain-ink', '--pr'], ['--pr'], ['motions/plain-ink', '--github', 'ana'], ['--github', 'ana']]) {
-    const r = await inDir(project, 'share', args);
+    const r = await inDir(project, 'publish', args);
     assert.equal(r.status, 2, args.join(' '));
     assert.match(r.out, /motionhub\.dev/, args.join(' '));
     assert.match(r.out, /share\/ branch/, args.join(' '));

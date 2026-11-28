@@ -1,6 +1,6 @@
-# Motion format 0.6
+# Motion format 0.7
 
-> **Status:** Draft · **Version:** `motion/0.6` · what each version added: §10
+> **Status:** Draft · **Version:** `motion/0.7` · what each version added: §10
 
 What a motion is on disk: the files, their fields and the rules any tool can rely on. This document only grows: a later version adds to it and never changes the meaning of what is here.
 
@@ -35,13 +35,13 @@ A JSON object with these members and no others, except extension members (§7).
 
 | Member | Required | Value |
 | --- | --- | --- |
-| `spec` | yes | `"motion/0.6"`; or `"motion/0.5"` for a motion whose parameters' defaults are not held to their types, `"motion/0.4"` for one not held to §12, `"motion/0.3"` for one also without `fit`, `"motion/0.2"` for one without `fit` and `basedOn`, or `"motion/0.1"` for one without `fit`, `scope` and `basedOn` |
-| `scope` | no | The GitHub username, in lowercase, of the person or organization that publishes the motion (since 0.2) |
+| `spec` | yes | `"motion/0.7"`; or `"motion/0.6"` for a motion whose authors are named by a GitHub username, `"motion/0.5"` for a motion whose parameters' defaults are not held to their types, `"motion/0.4"` for one not held to §12, `"motion/0.3"` for one also without `fit`, `"motion/0.2"` for one without `fit` and `basedOn`, or `"motion/0.1"` for one without `fit`, `scope` and `basedOn` |
+| `scope` | no | The handle of the account that publishes the motion on the hub that holds it: 1 to 39 characters of `a-z`, `0-9` and single hyphens, starting and ending with a letter or digit (since 0.2; before 0.7, a GitHub username in lowercase) |
 | `slug` | yes | 3 to 40 characters of `a-z`, `0-9` and single hyphens, starting and ending with a letter or digit; the name of the directory it is published in (§2) |
 | `version` | yes | A [Semantic Versioning 2.0](https://semver.org) version of this motion, for example `"1.0.0"` |
 | `name` | yes | A localized string (§8) of at most 60 characters per language |
 | `line` | yes | A localized string (§8) of at most 160 characters per language: one sentence saying what it looks like and what it is for |
-| `authors` | yes | A non-empty array of `{ "name": string, "github": string }`; `github` is a GitHub username |
+| `authors` | yes | A non-empty array of `{ "name": string, "handle": string }`; `handle` is the author's handle on the hub that holds the motion, as `scope` is. Before 0.7, `{ "name": string, "github": string }`, where `github` is a GitHub username |
 | `license` | yes | `{ "text": SPDX, "code": SPDX }`: `text` covers the documents, tokens and pictures; `code` covers any code under a tool directory and is required when there is any |
 | `lang` | no | The [BCP 47](https://www.rfc-editor.org/info/bcp47) tag of the language `MOTION.md` is written in; `"en"` when absent |
 | `tags` | no | Up to 10 keywords, each of `a-z`, `0-9` and single hyphens, in English |
@@ -50,7 +50,7 @@ A JSON object with these members and no others, except extension members (§7).
 
 ### Identity
 
-A motion's **id** is `@<scope>/<slug>` when it has a scope, and `<slug>` when it does not: `@ana/ledger-pencil`, `red-pencil`. Two motions under different scopes may have the same slug. Only the owner of a GitHub account publishes under its scope; what an unscoped id means is for the collection that holds it to say (motionhub accepts none: every motion there has a scope). Tools name, fetch and credit a motion by its id.
+A motion's **id** is `@<scope>/<slug>` when it has a scope, and `<slug>` when it does not: `@ana/ledger-pencil`, `red-pencil`. Two motions under different scopes may have the same slug. Only the account that holds a handle publishes under it as a scope; what an unscoped id means is for the collection that holds it to say (motionhub accepts none: every motion there has a scope). Tools name, fetch and credit a motion by its id.
 
 ### Building on another motion
 
@@ -69,13 +69,13 @@ An SPDX value is an [SPDX license expression](https://spdx.github.io/spdx-spec/v
 
 ```json
 {
-  "spec": "motion/0.4",
+  "spec": "motion/0.7",
   "scope": "ana",
   "slug": "lab-notebook",
   "version": "1.0.0",
   "name": { "en": "Lab Notebook", "zh-CN": "实验手记" },
   "line": { "en": "A squared notebook page where the diagram is drawn stroke by stroke as it is explained." },
-  "authors": [{ "name": "Ana", "github": "ana" }],
+  "authors": [{ "name": "Ana", "handle": "ana" }],
   "license": { "text": "CC-BY-4.0", "code": "MIT" },
   "tags": ["hand-drawn", "line-art", "light"],
   "fit": {
@@ -167,7 +167,7 @@ What several tools come to share moves into a later version of this format, as `
 
 A motion's `version` changes whenever any of its files change. A published version is never changed: a fix is a new version. A film that uses a motion keeps the copy it took.
 
-`spec` names the version of this format. A tool that meets a `spec` it does not know does not guess its meaning. A tool that reads a version reads every version before it: a `motion/0.1` motion is a `motion/0.2` motion without a scope, a `motion/0.2` motion is a `motion/0.3` motion without `basedOn`, and a `motion/0.3` motion is a `motion/0.4` motion without `fit`. A `motion/0.4` motion is a `motion/0.5` motion not held to §12, and a `motion/0.5` motion is a `motion/0.6` motion whose parameters' defaults are not held to their types (§12, Parameters).
+`spec` names the version of this format. A tool that meets a `spec` it does not know does not guess its meaning. A tool that reads a version reads every version before it: a `motion/0.1` motion is a `motion/0.2` motion without a scope, a `motion/0.2` motion is a `motion/0.3` motion without `basedOn`, and a `motion/0.3` motion is a `motion/0.4` motion without `fit`. A `motion/0.4` motion is a `motion/0.5` motion not held to §12, a `motion/0.5` motion is a `motion/0.6` motion whose parameters' defaults are not held to their types (§12, Parameters), and a `motion/0.6` motion is a `motion/0.7` motion whose authors are named by `github`, a GitHub username, where `handle` names them now (§3).
 
 ## 10. Versions of this format
 
@@ -179,6 +179,7 @@ A motion's `version` changes whenever any of its files change. A published versi
 | `motion/0.4` | `fit`: what a motion is for and what it handles badly (§3, What it is for). Changed in place while the format is below 1.0, by its maintainers' decision: `fit.kind` is no longer used and `fit.for` is optional; every motion valid before is valid still |
 | `motion/0.5` | A motion in one file (§11), components as part of the format (§12), and a `Components` section and recommended sections in `MOTION.md` (§5) |
 | `motion/0.6` | A vocabulary of parameter types, and a parameter's `default` as a value of its type (§12, Parameters). A motion at `motion/0.5` is read as before, and a tool may read its types by the same vocabulary, since they were free text |
+| `motion/0.7` | An author named by `handle`, the author's handle on the hub that holds the motion, in place of `github`, and `scope` as such a handle (§3), so a hub's accounts need not be GitHub's. A motion at `motion/0.6` is read as before, its `github` read as the handle |
 
 ## 11. A motion in one file
 

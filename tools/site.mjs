@@ -4,6 +4,7 @@
 
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {handleOf} from './security/ownership.mjs';
 
 export const SITE = 'https://motionhub.dev';
 export const REPO = 'https://github.com/motionhubdev/motionhub';
@@ -114,7 +115,7 @@ const HEADERS = `/api/*
 `;
 
 /**
- * The creators' page addresses: one creator per GitHub account (`accounts`, login in lowercase → id; a login not
+ * The creators' page addresses: one creator per account (`accounts`, handle in lowercase → id; a handle not
  * recorded is its own account), with every login it has published under. `key` is its page's address: a scope it
  * publishes under, the first A to Z, else its first login A to Z. Every other login gets a page that sends a visitor
  * to the key's, so an address once given keeps working even when a new scope moves the key.
@@ -123,7 +124,7 @@ export function creatorKeys(rows, accounts = new Map()) {
   const who = (login) => accounts.get(login) ?? `login:${login}`;
   const groups = new Map();
   for (const r of rows) for (const a of r.authors) {
-    const login = a.github.toLowerCase();
+    const login = handleOf(a).toLowerCase();
     const g = groups.get(who(login)) ?? {logins: new Set(), scopes: new Set()};
     g.logins.add(login);
     groups.set(who(login), g);

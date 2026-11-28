@@ -66,7 +66,7 @@ npx skills add motionhubdev/motionhub -g
 |---|---|
 | `/motionhub make a film about <你的主题> in @iamsuosi/lab-notebook` | agent 取回这个 motion，核对 SHA-256，完整读完 `MOTION.md` 和 `tokens.json`，再用它手头的引擎照着这个外观做片 |
 | `/motionhub make a Remotion film about <你的主题> in @iamsuosi/lab-notebook` | 同上，但用 Remotion，并用这个 motion 的组件和 token 来搭建 |
-| `/motionhub share this project's look as a motion` | agent 从项目里提取外观写成 motion（不带片子的故事），跑完检查后给你看结果，你同意后才开 pull request |
+| `/motionhub turn this project's look into a motion` | agent 按[提炼指南](docs/extract.md)从项目里提取外观写成 motion（不带片子的故事），跑完检查后给你看结果，你同意后才上传给自己用，或开 pull request 公开发布 |
 
 也可以用命令行，需要 Node.js 20 或更高版本：
 
@@ -82,7 +82,7 @@ npx @motionhub/cli get @iamsuosi/lab-notebook   # 下载到 ./motions/@iamsuosi/
 在 motionhub 上，一个 motion 是一个包含五个文件的目录，每个需要现成组件的工具还可以有自己的目录（在你自己的项目里，[一个 `MOTION.md` 就够了](docs/motion-md.md#start-with-one-file)）：
 
 ```
-motions/@<scope>/<slug>/   一个 motion，id 为 @<scope>/<slug>：创作者的 GitHub 用户名加 slug
+motions/@<scope>/<slug>/   一个 motion，id 为 @<scope>/<slug>：创作者的 handle 加 slug
   motion.json     id、版本、名称、一句话介绍、作者和许可证
   MOTION.md       用文字写给人和 agent 看的外观：气质、配色、字体、动法、要避免什么
   tokens.json     精确的数值，采用 W3C 设计 token 格式：颜色、字体、时长、缓动
@@ -126,19 +126,20 @@ motions/@<scope>/<slug>/   一个 motion，id 为 @<scope>/<slug>：创作者的
 做了一部片子，觉得它的外观值得给别人用？装好 skill 后，在那个项目里对 agent 说：
 
 ```text
-/motionhub share this project's look as a motion
+/motionhub turn this project's look into a motion
 ```
 
 也可以手动操作：
 
 ```sh
-npx @motionhub/cli init <slug> --github <你>   # 生成 ./motions/<slug>/，含所有待填写的必需文件，scope 为你
-npx @motionhub/cli share motions/<slug>        # 跑一遍 pull request 会跑的检查，然后给出链接：用 GitHub 登录即可开 pull request
+npx @motionhub/cli init <slug> --handle <你>   # 生成 ./motions/<slug>/，含所有待填写的必需文件，scope 为你
+npx @motionhub/cli upload motions/<slug>       # 只给自己用：立即保存，无需审核
+npx @motionhub/cli publish motions/<slug>      # 公开发布：跑一遍 pull request 会跑的检查，然后在终端认证 DCO（或打开链接）即可开 pull request
 ```
 
-不需要 git、gh 或 GitHub token：打开链接、用 GitHub 登录、输入终端显示的验证码。motionhub 的 GitHub App 会以你的名义打开 pull request。
+不需要 git、gh 或 GitHub token：打开链接、登录 motionhub.dev、输入终端显示的验证码。motionhub 的 GitHub App 会以你的名义打开 pull request。
 
-你的 motion 会以 `@<你的 GitHub 用户名>/<slug>` 发布，也欢迎在别人的 motion 基础上继续创作。接受什么、怎么审核，见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+你的 motion 会以 `@<你的 handle>/<slug>` 发布，也欢迎在别人的 motion 基础上继续创作。接受什么、怎么审核，见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 <details>
 <summary><b>仓库里有什么</b></summary>

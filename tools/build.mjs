@@ -30,6 +30,7 @@ import {dirname, join, relative, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {checkCatalogs, checkMotion, listMotions, motionId, readAccounts} from './check.mjs';
 import {files, tgz} from './pack.mjs';
+import {handleOf} from './security/ownership.mjs';
 
 export {tgz};
 
@@ -50,7 +51,8 @@ export function pack(dir) {
   const tools = readdirSync(dir, {withFileTypes: true}).filter((e) => e.isDirectory()).map((e) => e.name).sort();
   const row = {
     slug, ...(manifest.scope ? {scope: manifest.scope} : {}), spec: manifest.spec, version, name: manifest.name, line: manifest.line, lang: manifest.lang ?? 'en', tags: manifest.tags ?? [],
-    authors: manifest.authors, ...(manifest.basedOn ? {basedOn: manifest.basedOn} : {}), ...(manifest.fit ? {fit: manifest.fit} : {}), license: manifest.license, poster: `/m/${slug}/poster.jpg`, tools,
+    // every row names its authors by handle, the way motion/0.7 does; a row of an earlier motion keeps its github too
+    authors: manifest.authors.map((a) => ({...a, handle: handleOf(a).toLowerCase()})), ...(manifest.basedOn ? {basedOn: manifest.basedOn} : {}), ...(manifest.fit ? {fit: manifest.fit} : {}), license: manifest.license, poster: `/m/${slug}/poster.jpg`, tools,
     package: {url: `/m/${slug}/${version}.tgz`, sha256: createHash('sha256').update(archive).digest('hex'), bytes: archive.length},
     // the player of its reel (react/reel.tsx), which player/build.mjs writes
     ...(existsSync(join(dir, 'react/reel.tsx')) ? {reel: `/play/${slug}/`} : {}),
