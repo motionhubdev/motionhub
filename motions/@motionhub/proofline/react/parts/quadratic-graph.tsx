@@ -79,6 +79,8 @@ export const QuadraticGraph = (props: QuadraticGraphProps) => {
   const secantY = (x: number) => f0 + slope * (x - x0);
   const tangentY = (x: number) => tangentValue(coefficients, x0, x);
   const showQCoordinates = hasSecant && Math.abs(h) >= 0.35;
+  // Keep P's label on the side away from the y-axis, rather than letting it run through the axis.
+  const pLabelLeft = px(x0) < origin[0];
 
   return (
     <g>
@@ -127,7 +129,7 @@ export const QuadraticGraph = (props: QuadraticGraphProps) => {
       {hasSecant ? <circle cx={px(qx)} cy={py(qy)} r="7" fill="var(--color-compare)" opacity={secant} /> : null}
 
       <g fontFamily="var(--font-math)" fontSize="23" fill="var(--color-ink)">
-        <text x={px(x0) - 18} y={py(f0) - 20} textAnchor="end">P = ({formatNumber(x0)}, {formatNumber(f0)})</text>
+        <text x={px(x0) + (pLabelLeft ? -18 : 18)} y={py(f0) - 20} textAnchor={pLabelLeft ? 'end' : 'start'}>P = ({formatNumber(x0)}, {formatNumber(f0)})</text>
         {hasSecant ? (
           <text x={px(qx) + 18} y={py(qy) - 20} opacity={construction}>
             {showQCoordinates ? `Q = (${formatNumber(qx)}, ${formatNumber(qy)})` : 'Q'}

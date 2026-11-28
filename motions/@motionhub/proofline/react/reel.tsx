@@ -73,7 +73,7 @@ const TriangleReel = () => {
   return (
     <Stage label="INVARIANT" title="What stays true?">
       <svg width="1920" height="1080" style={{position: 'absolute', inset: 0}}>
-        <TriangleInvariant apex={apex} construction={progress(0, 'construct')} active={1} />
+        <TriangleInvariant apex={apex} construction={progress(0, 'construct')} active={progress(2.8, 'connect')} />
         <Tether from={[1260, 560]} to={[950, 730]} control1={[1160, 560]} control2={[1080, 730]} progress={progress(2.8, 'connect')} />
       </svg>
       <div style={{position: 'absolute', left: 1280, top: 370, opacity: progress(1.8, 'enter', 'arrive')}}>
@@ -171,6 +171,7 @@ const QuadraticReel = () => {
 const SecondAreaReel = () => {
   const progress = useReelProgress();
   const combine = progress(2.2);
+  const simplified = progress(2.6);
   const props = {a: 1, b: 4, xUnits: 4, origin: [230, 300] as [number, number]};
   const layout = resolveAreaModel(props);
   const first: [number, number] = [layout.right, layout.origin[1] + layout.xSize / 2];
@@ -182,8 +183,8 @@ const SecondAreaReel = () => {
         <Tether from={[1030, 650]} to={first} control1={[900, 650]} control2={[800, first[1]]} progress={progress(2.2, 'connect')} />
         <Tether from={[1030, 740]} to={second} control1={[950, 985]} control2={[650, 985]} progress={progress(2.2, 'connect')} />
       </svg>
-      <div style={{position: 'absolute', left: 1030, top: 370, fontFamily: 'var(--font-math)', fontSize: 62}}>(x + 1)(x + 4)</div>
-      <div style={{position: 'absolute', left: 1030, top: 510, fontFamily: 'var(--font-math)', fontSize: 84, display: 'flex', gap: 25}}>
+      <div style={{position: 'absolute', left: 1030, top: 370, fontFamily: 'var(--font-math)', fontSize: 62, opacity: simplified}}>(x + 1)(x + 4)</div>
+      <div style={{position: 'absolute', left: 1030, top: 510, fontFamily: 'var(--font-math)', fontSize: 84, display: 'flex', gap: 25, opacity: simplified}}>
         <span style={{color: 'var(--color-construct)'}}>x<sup>2</sup></span><span>+</span>
         <span style={{color: 'var(--color-active)'}}>5x</span><span>+</span>
         <span style={{color: 'var(--color-construct)'}}>4</span>
