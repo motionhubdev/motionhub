@@ -14,7 +14,9 @@
         "@iamsuosi/night-diagram",
         "@iamsuosi/earth-block",
         "@iamsuosi/plumb-line",
-        "@iamsuosi/drafting-table"
+        "@iamsuosi/drafting-table",
+        "@iamsuosi/tape-wall",
+        "@iamsuosi/snapshot-line"
       ]
     },
     {
@@ -25,7 +27,9 @@
         "@iamsuosi/stage-light",
         "@iamsuosi/field-atlas",
         "@iamsuosi/lab-notebook",
-        "@iamsuosi/red-pencil"
+        "@iamsuosi/red-pencil",
+        "@iamsuosi/letterpress-stats",
+        "@iamsuosi/receipt-roll"
       ]
     },
     {
@@ -36,7 +40,8 @@
         "@iamsuosi/watercolor-tale",
         "@iamsuosi/ink-scroll",
         "@iamsuosi/depth-stage",
-        "@iamsuosi/field-atlas"
+        "@iamsuosi/field-atlas",
+        "@iamsuosi/snapshot-line"
       ]
     },
     {
@@ -46,7 +51,8 @@
       "motions": [
         "@iamsuosi/screen-desk",
         "@iamsuosi/pixel-quest",
-        "@camilaon/origami"
+        "@camilaon/origami",
+        "@iamsuosi/index-cards"
       ]
     },
     {
@@ -56,7 +62,9 @@
       "motions": [
         "@iamsuosi/red-pencil",
         "@iamsuosi/evidence-board",
-        "@camilaon/idea-map"
+        "@camilaon/idea-map",
+        "@iamsuosi/light-table",
+        "@iamsuosi/typewriter-notes"
       ]
     },
     {

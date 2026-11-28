@@ -1,0 +1,12 @@
+{
+  "bpm": 92,
+  "root": 175,
+  "kit": ["kick", "rim", "pad"],
+  "roles": {
+    "cut": {"voice": "scratch", "lo": 1500, "hi": 6500, "gain": 0.6},
+    "draw": {"voice": "scratch", "lo": 2500, "hi": 8000, "gain": 0.35},
+    "move": {"voice": "swish", "lo": 800, "hi": 4000, "rise": 0.4, "gain": 0.4},
+    "land": {"voice": "thump", "freq": 110, "len": 0.14, "drop": 0.5, "gain": 0.8},
+    "out": {"voice": "swish", "lo": 150, "hi": 1200, "rise": 0.7, "gain": 0.7}
+  }
+}

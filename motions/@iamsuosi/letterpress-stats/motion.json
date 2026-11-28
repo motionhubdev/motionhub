@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "letterpress-stats",
+  "version": "1.0.0",
+  "name": {"en": "Letterpress Stats", "zh-CN": "活字压印"},
+  "line": {"en": "Wood type slid into a composing line and pressed into cream cotton stock, in deep ink and one vermilion, for headlines and big figures.", "zh-CN": "木活字逐个排进字盘，再压进奶油色棉纸：深墨加一点朱红，用来做标题和大数字。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["letterpress", "typographic", "print", "numbers", "warm", "light"],
+  "fit": {
+    "for": {"en": "Short films that turn on a few statements and figures: history and culture explainers, anniversaries, reports and promos that want a crafted, tactile voice.", "zh-CN": "靠几句话和几个数字撑起的短片：历史与文化讲解、周年纪念、报告与需要手作质感的宣传。"},
+    "not": {"en": "Diagrams, maps or anything that needs a picture: it prints only type and ornaments. Fast, loud promos.", "zh-CN": "示意图、地图或任何需要画面的内容：它只印字和花饰。节奏很快、很吵的宣传片。"}
+  }
+}

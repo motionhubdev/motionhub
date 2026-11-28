@@ -1,0 +1,12 @@
+{
+  "bpm": 100,
+  "root": 196,
+  "kit": ["hat", "rim", "bass"],
+  "roles": {
+    "draw": {"voice": "keys", "gain": 0.7},
+    "move": {"voice": "scratch", "lo": 2200, "hi": 7000, "gain": 0.55},
+    "land": {"voice": "click", "lo": 900, "hi": 3500, "len": 0.04, "gain": 0.6},
+    "cut": [{"voice": "scratch", "lo": 900, "hi": 5000, "gain": 0.8}, {"voice": "swish", "lo": 400, "hi": 3000, "rise": 0.6, "gain": 0.4}],
+    "out": {"voice": "tone", "freq": 1318, "len": 0.25, "decay": 0.1, "gain": 0.5}
+  }
+}

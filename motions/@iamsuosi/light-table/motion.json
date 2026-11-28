@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "light-table",
+  "version": "1.0.0",
+  "name": {"en": "Light Table", "zh-CN": "看片灯箱"},
+  "line": {"en": "Mounted slides on a glowing light table, compared side by side, slid over each other and searched with a loupe, marked in grease pencil.", "zh-CN": "发光看片台上的装框幻灯片：并排对比、叠放推入、放大镜细看，用油性笔圈出变化。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["before-after", "comparison", "photography", "hand-marked", "tactile"],
+  "fit": {
+    "for": {"en": "Before-and-after films of something you can picture: repairs, restorations, cleaning, edits, design revisions, stages of a change; with the maker's own pictures or clips in the slides.", "zh-CN": "能用画面呈现的前后对比：修复、翻新、清洁、修图与设计改版、变化的各个阶段；幻灯片里放制作者自己的图片或视频。"},
+    "not": {"en": "Abstract ideas or numbers with nothing to look at; long arguments. A film with no pictures of its own will look empty.", "zh-CN": "没有画面可看的抽象概念或数字；长篇论证。没有自己画面的片子会显得空。"}
+  }
+}

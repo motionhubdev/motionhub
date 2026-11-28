@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "neon-sign",
+  "version": "1.0.0",
+  "name": {"en": "Neon Sign", "zh-CN": "霓虹招牌"},
+  "line": {"en": "Words and marks bent in glass tube on a dark brick wall at night, stuttering alight letter by letter and humming, switched off between scenes.", "zh-CN": "夜里暗色砖墙上用玻璃灯管弯成的字和标志，逐字闪烁着亮起、轻轻嗡鸣，换场时整面墙关灯。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["neon", "night", "signage", "sting", "kinetic-type", "dark"],
+  "fit": {
+    "for": {"en": "Openings and stings, titles and short facts told one sign at a time: nightlife, cities, music, food and late-night shows, and any short film that wants a warm after-dark voice.", "zh-CN": "片头与标识、标题和一条一条的短事实：夜生活、城市、音乐、餐饮与深夜节目，以及任何想要温暖夜色气质的短片。"},
+    "not": {"en": "Long explanations, diagrams, maps or tables: a sign holds a few words. Daylight, sober or sombre subjects.", "zh-CN": "长篇解释、示意图、地图或表格：一块招牌只放得下几个字。白天感、严肃或沉重的题材。"}
+  }
+}

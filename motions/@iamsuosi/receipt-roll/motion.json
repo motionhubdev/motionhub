@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "receipt-roll",
+  "version": "1.0.0",
+  "name": {"en": "Receipt Roll", "zh-CN": "小票卷"},
+  "line": {"en": "Figures printed on thermal paper that rises out of a printer line by line on a dark counter, marked in blue ballpoint and torn off to move on.", "zh-CN": "深色柜台上，热敏纸从打印机口逐行吐出数字，蓝色圆珠笔圈出重点，撕下纸条进入下一段。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["receipt", "itemised", "data", "monospace", "playful", "dark"],
+  "fit": {
+    "for": {"en": "Anything told as a list of names and figures: specs, prices, the parts of a whole and their total, ingredients, units side by side; short and playful explainers.", "zh-CN": "能写成名目加数字清单的内容：规格、价格、整体的组成与合计、配料、并排对照的单位；轻松的短讲解。"},
+    "not": {"en": "Pictures, maps, mechanisms and stories: it holds only printed words and figures. Solemn subjects.", "zh-CN": "图像、地图、机理和故事：它只有印出来的字和数字。严肃沉重的题材。"}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "bpm": 100,
+  "root": 196,
+  "kit": ["kick", "hat", "pluck"],
+  "roles": {
+    "land": [{"voice": "click", "lo": 600, "hi": 3000, "len": 0.04, "gain": 0.6}, {"voice": "thump", "freq": 140, "len": 0.1, "drop": 0.3, "gain": 0.3}],
+    "move": {"voice": "swish", "lo": 500, "hi": 3500, "rise": 0.4, "gain": 0.5},
+    "cut": {"voice": "swish", "lo": 900, "hi": 6000, "rise": 0.25, "gain": 0.6},
+    "draw": {"voice": "scratch", "lo": 2000, "hi": 6500, "gain": 0.35},
+    "out": [{"voice": "thump", "freq": 80, "len": 0.25, "drop": 0.5, "gain": 1}, {"voice": "marimba", "freq": 392, "len": 0.8, "gain": 0.5}]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "typewriter-notes",
+  "version": "1.0.0",
+  "name": {"en": "Typewriter Notes", "zh-CN": "打字机笔记"},
+  "line": {"en": "A sheet feeding up out of a typewriter on a walnut desk, typed letter by letter, a phrase in red ribbon, pencil in the margin, a stamp to file it.", "zh-CN": "胡桃木桌上一页从打字机里送出的纸，逐字敲出，一句用红色色带，页边铅笔批注，最后盖章归档。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["typewriter", "quotes", "reading-notes", "paper", "warm", "literary"],
+  "fit": {
+    "for": {"en": "Quotations and book notes, reading lists, a method in a few steps, a small typed account of real figures: literary, historical and study films told in words.", "zh-CN": "引文与读书笔记、书单、几步方法、一小张打出来的真实账目：用文字讲的文学、历史与学习类短片。"},
+    "not": {"en": "Anything that needs a picture, a diagram, a map or motion of things: it only types words. Fast loud promos.", "zh-CN": "需要画面、示意图、地图或物体运动的内容：它只会打字。节奏快而喧闹的宣传片。"}
+  }
+}

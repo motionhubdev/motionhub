@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "snapshot-line",
+  "version": "1.0.0",
+  "name": {"en": "Snapshot Line", "zh-CN": "照片绳"},
+  "line": {"en": "Instant prints pegged on a string across a teal wall: the string is pulled, prints swing, and the one in the middle develops and is captioned by hand.", "zh-CN": "青色墙上一根绳夹着一排即显照片：绳子被拉动，照片摇晃，停在中间的那张显影，手写上说明。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["photos", "hand-written", "list", "timeline", "warm", "tactile"],
+  "fit": {
+    "for": {"en": "A list told one point at a time: feature round-ups, tips, the stages of a process, a timeline of dated moments, two things compared; light explainers and travel or nature stories.", "zh-CN": "一次讲一点的清单：功能盘点、小贴士、流程的各个阶段、带日期的时间线、两样东西的对比；轻松的讲解以及旅行或自然题材。"},
+    "not": {"en": "Data with many figures, diagrams of mechanisms, and anything that needs real photographs: the prints hold simple drawn pictures. Sombre subjects.", "zh-CN": "数字很多的数据、机制示意图，以及需要真实照片的内容：照片里只是简单的画。沉重的题材。"}
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "enamel-pins",
+  "version": "1.0.0",
+  "name": {"en": "Enamel Pins", "zh-CN": "珐琅徽章"},
+  "line": {"en": "Hard-enamel pins with gold outlines pressed one by one into deep green felt, words set in enamel banners, each glinting as it lands.", "zh-CN": "金色描边的硬珐琅徽章一枚枚按进深绿毛毡，文字做成珐琅横幅，落定时闪过一道光。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["enamel-pin", "playful", "collectible", "promo", "felt", "dark"],
+  "fit": {
+    "for": {"en": "Playful promos and short explainers in a few bright beats: what something does in three emblems, one figure, a comparison, a name to keep; launches, clubs, events, fun facts.", "zh-CN": "节奏轻快的宣传片和短讲解：用三枚徽章讲清它能做什么、一个数字、一组对比、一个记得住的名字；发布、社团、活动、趣味知识。"},
+    "not": {"en": "Long or detailed explanations, diagrams and maps; serious or sombre subjects; more than a few words at a time.", "zh-CN": "冗长或细致的讲解、示意图和地图；严肃或沉重的题材；一次超过几个词的文字。"}
+  }
+}

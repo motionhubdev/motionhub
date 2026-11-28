@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "tape-wall",
+  "version": "1.0.0",
+  "name": {"en": "Tape Wall", "zh-CN": "胶带墙"},
+  "line": {"en": "An idea worked out on a kraft wall: marker words on torn masking tape, joined by thin coloured tape, the key point tacked up on a card.", "zh-CN": "在牛皮纸墙上把一个概念理清：关键词用黑色马克笔写在撕下的美纹纸胶带上，用细彩色胶带连起来，重点写在图钉钉住的卡片上。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["concept-map", "hand-made", "marker", "tape", "workshop", "warm"],
+  "fit": {
+    "for": {"en": "Explaining how ideas connect: causes and effects, a process in steps, a question and its answer, a plan; science, business and history explainers, workshops and lessons.", "zh-CN": "讲清楚想法之间的联系：因果、分步流程、一个问题及其答案、一个计划；科普、商业和历史讲解，工作坊与课程。"},
+    "not": {"en": "Precise data and charts, maps, footage, and anything that must look polished or corporate.", "zh-CN": "精确数据和图表、地图、实拍画面，以及必须显得精致或商务的内容。"}
+  }
+}

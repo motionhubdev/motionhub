@@ -1,0 +1,16 @@
+{
+  "spec": "motion/0.6",
+  "scope": "iamsuosi",
+  "slug": "index-cards",
+  "version": "1.0.0",
+  "name": {"en": "Index Cards", "zh-CN": "索引卡"},
+  "line": {"en": "A how-to as a stack of ruled index cards on linen: one step to a card, a two-colour line drawing, flicked away to show the next.", "zh-CN": "亚麻桌布上的一叠横线索引卡讲步骤：一卡一步、双色线描，抽走一张露出下一张。"},
+  "authors": [{"name": "SuoSi", "github": "iamsuosi"}],
+  "license": {"text": "CC-BY-4.0", "code": "MIT"},
+  "lang": "en",
+  "tags": ["tutorial", "how-to", "line-drawing", "paper", "warm", "light"],
+  "fit": {
+    "for": {"en": "Short how-tos in three to six steps: cooking, gardening, crafts, home fixes, setting something up; with tips and a right-and-wrong way along the way.", "zh-CN": "三到六步的简短教程：烹饪、园艺、手工、居家修理、设置某样东西；中间可以插入小贴士和对错示范。"},
+    "not": {"en": "Data, arguments and stories; steps that need real footage or a screen to follow. More than six steps.", "zh-CN": "数据、论证和故事；必须看真实影像或屏幕才能跟上的步骤。超过六步的流程。"}
+  }
+}
