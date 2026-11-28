@@ -1,0 +1,41 @@
+{
+  "spec": "motion/0.7",
+  "scope": "motionhub",
+  "slug": "proofline",
+  "version": "1.0.0",
+  "name": {
+    "en": "Proofline"
+  },
+  "line": {
+    "en": "A precise editorial canvas where geometric constructions, graphs, and equations stay visibly linked as each idea is built."
+  },
+  "authors": [
+    {
+      "name": "MotionHub",
+      "handle": "motionhub"
+    }
+  ],
+  "license": {
+    "text": "CC-BY-4.0",
+    "code": "MIT"
+  },
+  "lang": "en",
+  "tags": [
+    "mathematics",
+    "education",
+    "geometry",
+    "algebra",
+    "functions",
+    "notation",
+    "minimal",
+    "light"
+  ],
+  "fit": {
+    "for": {
+      "en": "Middle and high school mathematics course introductions and concept overviews connecting geometry, notation, graphs, and worked examples in algebra, functions, and introductory calculus."
+    },
+    "not": {
+      "en": "Early-primary instruction, non-mathematical brand stories, footage-led videos, and long proofs requiring dense pages of notation."
+    }
+  }
+}
