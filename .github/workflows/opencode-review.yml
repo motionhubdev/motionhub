@@ -1,0 +1,177 @@
+# OpenCode + a repository-configured LLM reviews motion submissions after the required checks pass. The workflow always comes from main;
+# submission files are read as data and never installed or executed. Model inference and GitHub publication have
+# separate credentials. Setup and the approval gates are documented in .github/opencode/README.md.
+name: motion-review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_run:
+    workflows: [check, ownership]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Motion submission pull request number
+        required: true
+        type: number
+
+permissions: {}
+concurrency:
+  group: motion-review-${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || inputs.pr }}
+  cancel-in-progress: true
+
+jobs:
+  context:
+    name: motion-review / context
+    if: vars.OPENCODE_ENABLED == 'true' && vars.MOTIONHUB_BOT != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+    outputs:
+      review: ${{ steps.prepare.outputs.review || 'skip' }}
+      source: ${{ steps.source.outputs.sha }}
+      head: ${{ steps.target.outputs.head }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+      - id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Resolve the submission this event names
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "review=skip" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = pull_request_target ]; then
+            pr="${{ github.event.pull_request.number }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            pr="${{ inputs.pr }}"
+            head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" --jq '.head.sha')
+          else
+            head="${{ github.event.workflow_run.head_sha }}"
+            pr=$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")
+            if [ -z "$pr" ]; then
+              pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --paginate --jq ".[] | select(.head.sha == \"$head\") | .number" | head -n 1)
+            fi
+          fi
+          if [[ "$pr" =~ ^[0-9]+$ ]] && [[ "$head" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "pr=$pr" >> "$GITHUB_OUTPUT"
+            echo "head=$head" >> "$GITHUB_OUTPUT"
+          else
+            echo "No open submission pull request belongs to this event; nothing to review."
+          fi
+      - name: The submission's exact files, to read and never run
+        if: steps.target.outputs.pr != ''
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ steps.target.outputs.head }}
+          path: pr
+          persist-credentials: false
+      - name: Capture a fully checked, eligible submission
+        if: steps.target.outputs.pr != ''
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MOTIONHUB_BOT: ${{ vars.MOTIONHUB_BOT }}
+          PR: ${{ steps.target.outputs.pr }}
+          HEAD_SHA: ${{ steps.target.outputs.head }}
+        run: node .github/scripts/motion-review.mjs prepare "$RUNNER_TEMP/review-context.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.prepare.outputs.review == 'ready'
+        with:
+          name: motion-review-context
+          path: ${{ runner.temp }}/review-context.json
+          retention-days: 1
+
+  infer:
+    name: motion-review / infer
+    needs: context
+    if: needs.context.outputs.review == 'ready'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      artifact: ${{ steps.result.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.context.outputs.source }}
+          persist-credentials: false
+      - name: The same submission revision, as read-only material
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.context.outputs.head }}
+          path: pr
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: motion-review-context
+          path: ${{ github.workspace }}
+      - name: Install the pinned OpenCode CLI
+        run: npm install --global @opencode/cli@2.4.2 --no-audit --no-fund
+      - name: Review with the configured LLM and no executable submission content
+        env:
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_KEY: ${{ secrets.LLM_KEY }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          CI: 1
+          NO_COLOR: 1
+        run: |
+          node .github/scripts/motion-review.mjs check-llm
+          cp .github/opencode/motion-review.jsonc opencode.jsonc
+          opencode run --standalone --archived --agent motion-review --model configured/review "$(cat .github/opencode/prompt.txt)" > "$RUNNER_TEMP/answer.txt"
+          node .github/scripts/motion-review.mjs validate review-context.json "$RUNNER_TEMP/answer.txt" "$RUNNER_TEMP/result.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: result
+        with:
+          name: motion-review-result
+          path: ${{ runner.temp }}/result.json
+          retention-days: 1
+
+  publish:
+    name: motion-review / publish
+    needs: [context, infer]
+    if: needs.context.outputs.review == 'ready'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.context.outputs.source }}
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: motion-review-context
+          path: ${{ runner.temp }}/input
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: motion-review-result
+          path: ${{ runner.temp }}/answer
+      - name: Revalidate the live submission and publish only its review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MOTIONHUB_BOT: ${{ vars.MOTIONHUB_BOT }}
+          OPENCODE_AUTO_APPROVE: ${{ vars.OPENCODE_AUTO_APPROVE }}
+        run: node .github/scripts/motion-review.mjs publish "$RUNNER_TEMP/input/review-context.json" "$RUNNER_TEMP/answer/result.json"

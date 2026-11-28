@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0
+
+- `status` shows your shares waiting to be submitted, submission history, open pull requests, both required checks, the reviewer workflow, the latest review decision and concrete reviewer feedback. `status <id>` selects one motion, `status --pr <number>` reads a pull request after it closes too, and `--json` returns the records for tools. It uses the same motionhub.dev login as `publish`, with no GitHub token.
+
 ## 0.11.0
 
 Breaking change. A motion belongs to a motionhub account, and its author is named by a handle (`motion/0.7`).

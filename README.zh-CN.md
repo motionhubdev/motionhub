@@ -135,6 +135,7 @@ motions/@<scope>/<slug>/   一个 motion，id 为 @<scope>/<slug>：创作者的
 npx @motionhub/cli init <slug> --handle <你>   # 生成 ./motions/<slug>/，含所有待填写的必需文件，scope 为你
 npx @motionhub/cli upload motions/<slug>       # 只给自己用：立即保存，无需审核
 npx @motionhub/cli publish motions/<slug>      # 公开发布：跑一遍 pull request 会跑的检查，然后在终端认证 DCO（或打开链接）即可开 pull request
+npx @motionhub/cli status                       # 查看投稿进度、检查结果、评审反馈和下一步
 ```
 
 不需要 git、gh 或 GitHub token：打开链接、登录 motionhub.dev、输入终端显示的验证码。motionhub 的 GitHub App 会以你的名义打开 pull request。

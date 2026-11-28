@@ -109,7 +109,7 @@ To publish a new version of a motion the person published (only when they ask, a
 3. Raise `version` in `motion.json` above the published one: the patch for a fix, the minor for something added (a component, a section), the major for a change films already made in it would not survive. A published version never changes.
 4. `npx @motionhub/cli publish <dir> --wait`, as above (or `upload <dir>` for one they keep for themselves): they open the link and submit; if their pull request for it is open already, the new version is added to it. Only the motion's sole author account can change it; updates cannot replace or add an author. Credit help in CREDITS.md. `--wait` waits up to 30 minutes.
 
-To change a motion after review notes on its pull request, read the notes (`https://api.github.com/repos/motionhubdev/motionhub/issues/<n>/comments` and `.../pulls/<n>/comments`, no token needed), make the changes they ask for, and publish again the same way.
+To follow a submission, `npx @motionhub/cli status --pr <n>` shows its required checks, reviewer workflow, review decision and concrete feedback (`status <id>` selects the motion instead, and `--json` is for tools). To change a motion after review notes, read that feedback, make the changes it asks for, and publish again the same way.
 
 To build on someone else's motion, publish yours under your own scope, name theirs in `motion.json`'s `basedOn` (`[{"id": "@iamsuosi/lab-notebook", "version": "1.0.2"}]`) and say in `CREDITS.md` what you took and changed; only its sole author changes the original.
 
